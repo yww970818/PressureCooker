@@ -1,0 +1,6 @@
+ARG MINIO_BASE_IMAGE=mcr.microsoft.com/openjdk/jdk:21-ubuntu
+FROM ${MINIO_BASE_IMAGE}
+COPY vendor/minio-linux-amd64 /usr/local/bin/minio
+RUN chmod 755 /usr/local/bin/minio
+USER 10001:10001
+ENTRYPOINT ["/usr/local/bin/minio", "--certs-dir", "/tmp/certs"]

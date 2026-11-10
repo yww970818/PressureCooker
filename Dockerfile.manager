@@ -1,0 +1,27 @@
+ARG MANAGER_BASE_IMAGE=pressurecooker-control-base:local
+FROM ${MANAGER_BASE_IMAGE} AS mcp-deps
+USER root
+COPY vendor/node-v22.23.4-linux-x64.tar.xz /tmp/node.tar.xz
+RUN echo '1805bcd35e6815559bd2eb97db438d3fdb0eb3a5e6a977b7c1badca76337e9ce  /tmp/node.tar.xz' | sha256sum -c - \
+    && tar -xJf /tmp/node.tar.xz -C /opt \
+    && mv /opt/node-v22.23.4-linux-x64 /opt/node \
+    && rm /tmp/node.tar.xz
+ENV PATH=/opt/node/bin:$PATH
+WORKDIR /app/mcp
+COPY controlplane/mcp/package.json controlplane/mcp/package-lock.json ./
+COPY vendor/jmeter-mcp-npm-cache.tgz /tmp/mcp-cache.tgz
+RUN mkdir -p /tmp/mcp-cache \
+    && tar -xzf /tmp/mcp-cache.tgz -C /tmp/mcp-cache \
+    && npm ci --offline --cache /tmp/mcp-cache --omit=dev --ignore-scripts --no-audit --no-fund \
+    && rm -rf /tmp/mcp-cache /tmp/mcp-cache.tgz
+
+FROM ${MANAGER_BASE_IMAGE}
+COPY --from=mcp-deps /opt/node/bin/node /usr/local/bin/node
+COPY --from=mcp-deps /opt/node/LICENSE /app/licenses/node-LICENSE
+COPY --from=mcp-deps /app/mcp/node_modules /app/mcp/node_modules
+COPY vendor/jmeter-manager-linux-amd64 /app/bin/jmeter-manager
+COPY vendor/jmeter-mcp-linux-amd64 /app/bin/jmeter-mcp
+COPY controlplane/frontend/dist /app/frontend
+WORKDIR /app
+USER 10001:10001
+ENTRYPOINT ["/app/bin/jmeter-manager"]

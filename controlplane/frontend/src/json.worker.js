@@ -1,0 +1,1 @@
+self.onmessage=({data:{id,action,value}})=>{try{const result=action==='parse'?JSON.parse(new TextDecoder().decode(value)):JSON.stringify(value);self.postMessage({id,result});}catch(error){self.postMessage({id,error:error.message});}};

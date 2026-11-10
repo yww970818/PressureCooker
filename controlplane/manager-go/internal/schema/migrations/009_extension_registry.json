@@ -1,0 +1,8 @@
+{
+ "version":9,
+ "name":"extension_registry",
+ "statements":[
+  "CREATE TABLE IF NOT EXISTS `{{prefix}}extension_registries`(id VARCHAR(101) COLLATE utf8mb4_bin PRIMARY KEY,project_id VARCHAR(101) COLLATE utf8mb4_bin NOT NULL,kind VARCHAR(40) NOT NULL,revision BIGINT NOT NULL,created_at VARCHAR(64) NOT NULL,data LONGTEXT NOT NULL,UNIQUE KEY project_kind(project_id,kind)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
+  "CREATE TABLE IF NOT EXISTS `{{prefix}}extension_versions`(id VARCHAR(101) COLLATE utf8mb4_bin PRIMARY KEY,project_id VARCHAR(101) COLLATE utf8mb4_bin NOT NULL,kind VARCHAR(40) NOT NULL,extension_id VARCHAR(101) COLLATE utf8mb4_bin NOT NULL,version VARCHAR(64) COLLATE utf8mb4_bin NOT NULL,sha256 VARCHAR(64) NOT NULL,created_at VARCHAR(64) NOT NULL,data LONGTEXT NOT NULL,UNIQUE KEY immutable_version(project_id,kind,extension_id,version)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
+ ]
+}

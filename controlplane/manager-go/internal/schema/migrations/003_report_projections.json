@@ -1,0 +1,342 @@
+{
+  "version": 3,
+  "name": "report_projections",
+  "columns": [
+    {
+      "table": "pressure_reports",
+      "name": "finished_at",
+      "definition": "VARCHAR(64) NOT NULL DEFAULT ''",
+      "backfill": "CASE WHEN JSON_VALID(data) THEN CASE WHEN JSON_TYPE(JSON_EXTRACT(data,'$.finished_at'))='STRING' THEN LEFT(JSON_UNQUOTE(JSON_EXTRACT(data,'$.finished_at')),64) ELSE '' END ELSE '' END"
+    },
+    {
+      "table": "pressure_reports",
+      "name": "verdict_status",
+      "definition": "VARCHAR(32) NOT NULL DEFAULT 'NOT_SET'",
+      "backfill": "CASE WHEN JSON_VALID(data) THEN CASE WHEN JSON_TYPE(COALESCE(NULLIF(JSON_EXTRACT(data,'$.verdict_status'),CAST('null' AS JSON)),NULLIF(JSON_EXTRACT(data,'$.verdict.status'),CAST('null' AS JSON))))='STRING' THEN LEFT(JSON_UNQUOTE(COALESCE(NULLIF(JSON_EXTRACT(data,'$.verdict_status'),CAST('null' AS JSON)),NULLIF(JSON_EXTRACT(data,'$.verdict.status'),CAST('null' AS JSON)))),32) ELSE 'NOT_SET' END ELSE 'NOT_SET' END"
+    },
+    {
+      "table": "pressure_reports",
+      "name": "sample_count",
+      "definition": "BIGINT NOT NULL DEFAULT 0",
+      "backfill": "CASE WHEN JSON_VALID(data) THEN CASE WHEN JSON_TYPE(JSON_EXTRACT(data,'$.metrics.sample_count')) IN ('INTEGER','DOUBLE','DECIMAL') THEN JSON_UNQUOTE(JSON_EXTRACT(data,'$.metrics.sample_count')) ELSE 0 END ELSE 0 END"
+    },
+    {
+      "table": "pressure_reports",
+      "name": "success_count",
+      "definition": "BIGINT NOT NULL DEFAULT 0",
+      "backfill": "CASE WHEN JSON_VALID(data) THEN CASE WHEN JSON_TYPE(JSON_EXTRACT(data,'$.metrics.success_count')) IN ('INTEGER','DOUBLE','DECIMAL') THEN JSON_UNQUOTE(JSON_EXTRACT(data,'$.metrics.success_count')) ELSE 0 END ELSE 0 END"
+    },
+    {
+      "table": "pressure_reports",
+      "name": "mean_ms",
+      "definition": "DOUBLE NULL",
+      "backfill": "CASE WHEN JSON_VALID(data) THEN CASE WHEN JSON_TYPE(JSON_EXTRACT(data,'$.metrics.mean_ms')) IN ('INTEGER','DOUBLE','DECIMAL') THEN JSON_UNQUOTE(JSON_EXTRACT(data,'$.metrics.mean_ms')) ELSE NULL END ELSE NULL END"
+    },
+    {
+      "table": "pressure_reports",
+      "name": "min_ms",
+      "definition": "DOUBLE NULL",
+      "backfill": "CASE WHEN JSON_VALID(data) THEN CASE WHEN JSON_TYPE(JSON_EXTRACT(data,'$.metrics.min_ms')) IN ('INTEGER','DOUBLE','DECIMAL') THEN JSON_UNQUOTE(JSON_EXTRACT(data,'$.metrics.min_ms')) ELSE NULL END ELSE NULL END"
+    },
+    {
+      "table": "pressure_reports",
+      "name": "max_ms",
+      "definition": "DOUBLE NULL",
+      "backfill": "CASE WHEN JSON_VALID(data) THEN CASE WHEN JSON_TYPE(JSON_EXTRACT(data,'$.metrics.max_ms')) IN ('INTEGER','DOUBLE','DECIMAL') THEN JSON_UNQUOTE(JSON_EXTRACT(data,'$.metrics.max_ms')) ELSE NULL END ELSE NULL END"
+    },
+    {
+      "table": "pressure_reports",
+      "name": "p50_ms",
+      "definition": "DOUBLE NULL",
+      "backfill": "CASE WHEN JSON_VALID(data) THEN CASE WHEN JSON_TYPE(JSON_EXTRACT(data,'$.metrics.p50_ms')) IN ('INTEGER','DOUBLE','DECIMAL') THEN JSON_UNQUOTE(JSON_EXTRACT(data,'$.metrics.p50_ms')) ELSE NULL END ELSE NULL END"
+    },
+    {
+      "table": "pressure_reports",
+      "name": "p90_ms",
+      "definition": "DOUBLE NULL",
+      "backfill": "CASE WHEN JSON_VALID(data) THEN CASE WHEN JSON_TYPE(JSON_EXTRACT(data,'$.metrics.p90_ms')) IN ('INTEGER','DOUBLE','DECIMAL') THEN JSON_UNQUOTE(JSON_EXTRACT(data,'$.metrics.p90_ms')) ELSE NULL END ELSE NULL END"
+    },
+    {
+      "table": "pressure_reports",
+      "name": "bytes_received",
+      "definition": "BIGINT NOT NULL DEFAULT 0",
+      "backfill": "CASE WHEN JSON_VALID(data) THEN CASE WHEN JSON_TYPE(JSON_EXTRACT(data,'$.metrics.bytes_received')) IN ('INTEGER','DOUBLE','DECIMAL') THEN JSON_UNQUOTE(JSON_EXTRACT(data,'$.metrics.bytes_received')) ELSE 0 END ELSE 0 END"
+    },
+    {
+      "table": "pressure_reports",
+      "name": "bytes_sent",
+      "definition": "BIGINT NOT NULL DEFAULT 0",
+      "backfill": "CASE WHEN JSON_VALID(data) THEN CASE WHEN JSON_TYPE(JSON_EXTRACT(data,'$.metrics.bytes_sent')) IN ('INTEGER','DOUBLE','DECIMAL') THEN JSON_UNQUOTE(JSON_EXTRACT(data,'$.metrics.bytes_sent')) ELSE 0 END ELSE 0 END"
+    },
+    {
+      "table": "pressure_reports",
+      "name": "transaction_count",
+      "definition": "BIGINT NOT NULL DEFAULT 0",
+      "backfill": "CASE WHEN JSON_VALID(data) THEN CASE WHEN JSON_TYPE(JSON_EXTRACT(data,'$.metrics.transaction_count')) IN ('INTEGER','DOUBLE','DECIMAL') THEN JSON_UNQUOTE(JSON_EXTRACT(data,'$.metrics.transaction_count')) ELSE 0 END ELSE 0 END"
+    },
+    {
+      "table": "pressure_reports",
+      "name": "sample_scope",
+      "definition": "VARCHAR(64) NOT NULL DEFAULT 'sample_records'",
+      "backfill": "CASE WHEN JSON_VALID(data) THEN CASE WHEN JSON_TYPE(JSON_EXTRACT(data,'$.metrics.sample_scope'))='STRING' THEN LEFT(JSON_UNQUOTE(JSON_EXTRACT(data,'$.metrics.sample_scope')),64) ELSE 'sample_records' END ELSE 'sample_records' END"
+    },
+    {
+      "table": "pressure_reports",
+      "name": "failure_count",
+      "definition": "BIGINT NOT NULL DEFAULT 0",
+      "backfill": "CASE WHEN JSON_VALID(data) THEN CASE WHEN JSON_TYPE(JSON_EXTRACT(data,'$.metrics.failure_count')) IN ('INTEGER','DOUBLE','DECIMAL') THEN JSON_UNQUOTE(JSON_EXTRACT(data,'$.metrics.failure_count')) ELSE 0 END ELSE 0 END"
+    },
+    {
+      "table": "pressure_reports",
+      "name": "success_rate",
+      "definition": "DOUBLE NULL",
+      "backfill": "CASE WHEN JSON_VALID(data) THEN CASE WHEN JSON_TYPE(JSON_EXTRACT(data,'$.metrics.success_rate')) IN ('INTEGER','DOUBLE','DECIMAL') THEN JSON_UNQUOTE(JSON_EXTRACT(data,'$.metrics.success_rate')) ELSE NULL END ELSE NULL END"
+    },
+    {
+      "table": "pressure_reports",
+      "name": "rps",
+      "definition": "DOUBLE NULL",
+      "backfill": "CASE WHEN JSON_VALID(data) THEN CASE WHEN JSON_TYPE(JSON_EXTRACT(data,'$.metrics.rps')) IN ('INTEGER','DOUBLE','DECIMAL') THEN JSON_UNQUOTE(JSON_EXTRACT(data,'$.metrics.rps')) ELSE NULL END ELSE NULL END"
+    },
+    {
+      "table": "pressure_reports",
+      "name": "p95_ms",
+      "definition": "DOUBLE NULL",
+      "backfill": "CASE WHEN JSON_VALID(data) THEN CASE WHEN JSON_TYPE(JSON_EXTRACT(data,'$.metrics.p95_ms')) IN ('INTEGER','DOUBLE','DECIMAL') THEN JSON_UNQUOTE(JSON_EXTRACT(data,'$.metrics.p95_ms')) ELSE NULL END ELSE NULL END"
+    },
+    {
+      "table": "pressure_reports",
+      "name": "p99_ms",
+      "definition": "DOUBLE NULL",
+      "backfill": "CASE WHEN JSON_VALID(data) THEN CASE WHEN JSON_TYPE(JSON_EXTRACT(data,'$.metrics.p99_ms')) IN ('INTEGER','DOUBLE','DECIMAL') THEN JSON_UNQUOTE(JSON_EXTRACT(data,'$.metrics.p99_ms')) ELSE NULL END ELSE NULL END"
+    },
+    {
+      "table": "pressure_reports",
+      "name": "duration_seconds",
+      "definition": "DOUBLE NULL",
+      "backfill": "CASE WHEN JSON_VALID(data) THEN CASE WHEN JSON_TYPE(JSON_EXTRACT(data,'$.metrics.duration_seconds')) IN ('INTEGER','DOUBLE','DECIMAL') THEN JSON_UNQUOTE(JSON_EXTRACT(data,'$.metrics.duration_seconds')) ELSE NULL END ELSE NULL END"
+    },
+    {
+      "table": "pressure_report_sources",
+      "name": "name",
+      "definition": "VARCHAR(100) NOT NULL DEFAULT ''",
+      "backfill": "CASE WHEN JSON_VALID(data) THEN CASE WHEN JSON_TYPE(JSON_EXTRACT(data,'$.name'))='STRING' THEN LEFT(JSON_UNQUOTE(JSON_EXTRACT(data,'$.name')),100) ELSE '' END ELSE '' END"
+    },
+    {
+      "table": "pressure_report_sources",
+      "name": "status",
+      "definition": "VARCHAR(32) NOT NULL DEFAULT ''",
+      "backfill": "CASE WHEN JSON_VALID(data) THEN CASE WHEN JSON_TYPE(JSON_EXTRACT(data,'$.status'))='STRING' THEN LEFT(JSON_UNQUOTE(JSON_EXTRACT(data,'$.status')),32) ELSE '' END ELSE '' END"
+    },
+    {
+      "table": "pressure_report_sources",
+      "name": "bucket",
+      "definition": "VARCHAR(200) NOT NULL DEFAULT ''",
+      "backfill": "CASE WHEN JSON_VALID(data) THEN CASE WHEN JSON_TYPE(JSON_EXTRACT(data,'$.bucket'))='STRING' THEN LEFT(JSON_UNQUOTE(JSON_EXTRACT(data,'$.bucket')),200) ELSE '' END ELSE '' END"
+    },
+    {
+      "table": "pressure_report_sources",
+      "name": "object_key",
+      "definition": "VARCHAR(1000) NOT NULL DEFAULT ''",
+      "backfill": "CASE WHEN JSON_VALID(data) THEN CASE WHEN JSON_TYPE(COALESCE(NULLIF(JSON_EXTRACT(data,'$.object_key'),CAST('null' AS JSON)),NULLIF(JSON_EXTRACT(data,'$.key'),CAST('null' AS JSON))))='STRING' THEN LEFT(JSON_UNQUOTE(COALESCE(NULLIF(JSON_EXTRACT(data,'$.object_key'),CAST('null' AS JSON)),NULLIF(JSON_EXTRACT(data,'$.key'),CAST('null' AS JSON)))),1000) ELSE '' END ELSE '' END"
+    },
+    {
+      "table": "pressure_report_sources",
+      "name": "sha256",
+      "definition": "VARCHAR(64) NOT NULL DEFAULT ''",
+      "backfill": "CASE WHEN JSON_VALID(data) THEN CASE WHEN JSON_TYPE(JSON_EXTRACT(data,'$.sha256'))='STRING' THEN LEFT(JSON_UNQUOTE(JSON_EXTRACT(data,'$.sha256')),64) ELSE '' END ELSE '' END"
+    },
+    {
+      "table": "pressure_report_sources",
+      "name": "size",
+      "definition": "BIGINT NOT NULL DEFAULT 0",
+      "backfill": "CASE WHEN JSON_VALID(data) THEN CASE WHEN JSON_TYPE(JSON_EXTRACT(data,'$.size')) IN ('INTEGER','DOUBLE','DECIMAL') THEN JSON_UNQUOTE(JSON_EXTRACT(data,'$.size')) ELSE 0 END ELSE 0 END"
+    },
+    {
+      "table": "pressure_report_sources",
+      "name": "valid_rows",
+      "definition": "BIGINT NOT NULL DEFAULT 0",
+      "backfill": "CASE WHEN JSON_VALID(data) THEN CASE WHEN JSON_TYPE(JSON_EXTRACT(data,'$.valid_rows')) IN ('INTEGER','DOUBLE','DECIMAL') THEN JSON_UNQUOTE(JSON_EXTRACT(data,'$.valid_rows')) ELSE 0 END ELSE 0 END"
+    },
+    {
+      "table": "pressure_report_sources",
+      "name": "invalid_rows",
+      "definition": "BIGINT NOT NULL DEFAULT 0",
+      "backfill": "CASE WHEN JSON_VALID(data) THEN CASE WHEN JSON_TYPE(JSON_EXTRACT(data,'$.invalid_rows')) IN ('INTEGER','DOUBLE','DECIMAL') THEN JSON_UNQUOTE(JSON_EXTRACT(data,'$.invalid_rows')) ELSE 0 END ELSE 0 END"
+    },
+    {
+      "table": "pressure_report_steps",
+      "name": "sample_kind",
+      "definition": "VARCHAR(64) NOT NULL DEFAULT ''",
+      "backfill": "CASE WHEN JSON_VALID(data) THEN CASE WHEN JSON_TYPE(JSON_EXTRACT(data,'$.sample_kind'))='STRING' THEN LEFT(JSON_UNQUOTE(JSON_EXTRACT(data,'$.sample_kind')),64) ELSE '' END ELSE '' END"
+    },
+    {
+      "table": "pressure_report_steps",
+      "name": "sample_count",
+      "definition": "BIGINT NOT NULL DEFAULT 0",
+      "backfill": "CASE WHEN JSON_VALID(data) THEN CASE WHEN JSON_TYPE(JSON_EXTRACT(data,'$.sample_count')) IN ('INTEGER','DOUBLE','DECIMAL') THEN JSON_UNQUOTE(JSON_EXTRACT(data,'$.sample_count')) ELSE 0 END ELSE 0 END"
+    },
+    {
+      "table": "pressure_report_steps",
+      "name": "failure_count",
+      "definition": "BIGINT NOT NULL DEFAULT 0",
+      "backfill": "CASE WHEN JSON_VALID(data) THEN CASE WHEN JSON_TYPE(JSON_EXTRACT(data,'$.failure_count')) IN ('INTEGER','DOUBLE','DECIMAL') THEN JSON_UNQUOTE(JSON_EXTRACT(data,'$.failure_count')) ELSE 0 END ELSE 0 END"
+    },
+    {
+      "table": "pressure_report_steps",
+      "name": "success_rate",
+      "definition": "DOUBLE NULL",
+      "backfill": "CASE WHEN JSON_VALID(data) THEN CASE WHEN JSON_TYPE(JSON_EXTRACT(data,'$.success_rate')) IN ('INTEGER','DOUBLE','DECIMAL') THEN JSON_UNQUOTE(JSON_EXTRACT(data,'$.success_rate')) ELSE NULL END ELSE NULL END"
+    },
+    {
+      "table": "pressure_report_steps",
+      "name": "mean_ms",
+      "definition": "DOUBLE NULL",
+      "backfill": "CASE WHEN JSON_VALID(data) THEN CASE WHEN JSON_TYPE(JSON_EXTRACT(data,'$.mean_ms')) IN ('INTEGER','DOUBLE','DECIMAL') THEN JSON_UNQUOTE(JSON_EXTRACT(data,'$.mean_ms')) ELSE NULL END ELSE NULL END"
+    },
+    {
+      "table": "pressure_report_steps",
+      "name": "p95_ms",
+      "definition": "DOUBLE NULL",
+      "backfill": "CASE WHEN JSON_VALID(data) THEN CASE WHEN JSON_TYPE(JSON_EXTRACT(data,'$.p95_ms')) IN ('INTEGER','DOUBLE','DECIMAL') THEN JSON_UNQUOTE(JSON_EXTRACT(data,'$.p95_ms')) ELSE NULL END ELSE NULL END"
+    },
+    {
+      "table": "pressure_report_steps",
+      "name": "p99_ms",
+      "definition": "DOUBLE NULL",
+      "backfill": "CASE WHEN JSON_VALID(data) THEN CASE WHEN JSON_TYPE(JSON_EXTRACT(data,'$.p99_ms')) IN ('INTEGER','DOUBLE','DECIMAL') THEN JSON_UNQUOTE(JSON_EXTRACT(data,'$.p99_ms')) ELSE NULL END ELSE NULL END"
+    },
+    {
+      "table": "pressure_report_timeline",
+      "name": "timestamp_ms",
+      "definition": "BIGINT NOT NULL DEFAULT 0",
+      "backfill": "CASE WHEN JSON_VALID(data) THEN CASE WHEN JSON_TYPE(JSON_EXTRACT(data,'$.timestamp_ms')) IN ('INTEGER','DOUBLE','DECIMAL') THEN JSON_UNQUOTE(JSON_EXTRACT(data,'$.timestamp_ms')) ELSE 0 END ELSE 0 END"
+    },
+    {
+      "table": "pressure_report_timeline",
+      "name": "width_ms",
+      "definition": "BIGINT NOT NULL DEFAULT 0",
+      "backfill": "CASE WHEN JSON_VALID(data) THEN CASE WHEN JSON_TYPE(JSON_EXTRACT(data,'$.width_ms')) IN ('INTEGER','DOUBLE','DECIMAL') THEN JSON_UNQUOTE(JSON_EXTRACT(data,'$.width_ms')) ELSE 0 END ELSE 0 END"
+    },
+    {
+      "table": "pressure_report_timeline",
+      "name": "sample_count",
+      "definition": "BIGINT NOT NULL DEFAULT 0",
+      "backfill": "CASE WHEN JSON_VALID(data) THEN CASE WHEN JSON_TYPE(JSON_EXTRACT(data,'$.sample_count')) IN ('INTEGER','DOUBLE','DECIMAL') THEN JSON_UNQUOTE(JSON_EXTRACT(data,'$.sample_count')) ELSE 0 END ELSE 0 END"
+    },
+    {
+      "table": "pressure_report_timeline",
+      "name": "failure_count",
+      "definition": "BIGINT NOT NULL DEFAULT 0",
+      "backfill": "CASE WHEN JSON_VALID(data) THEN CASE WHEN JSON_TYPE(JSON_EXTRACT(data,'$.failure_count')) IN ('INTEGER','DOUBLE','DECIMAL') THEN JSON_UNQUOTE(JSON_EXTRACT(data,'$.failure_count')) ELSE 0 END ELSE 0 END"
+    },
+    {
+      "table": "pressure_report_timeline",
+      "name": "rps",
+      "definition": "DOUBLE NULL",
+      "backfill": "CASE WHEN JSON_VALID(data) THEN CASE WHEN JSON_TYPE(JSON_EXTRACT(data,'$.rps')) IN ('INTEGER','DOUBLE','DECIMAL') THEN JSON_UNQUOTE(JSON_EXTRACT(data,'$.rps')) ELSE NULL END ELSE NULL END"
+    },
+    {
+      "table": "pressure_report_timeline",
+      "name": "mean_ms",
+      "definition": "DOUBLE NULL",
+      "backfill": "CASE WHEN JSON_VALID(data) THEN CASE WHEN JSON_TYPE(JSON_EXTRACT(data,'$.mean_ms')) IN ('INTEGER','DOUBLE','DECIMAL') THEN JSON_UNQUOTE(JSON_EXTRACT(data,'$.mean_ms')) ELSE NULL END ELSE NULL END"
+    },
+    {
+      "table": "pressure_report_timeline",
+      "name": "p95_ms",
+      "definition": "DOUBLE NULL",
+      "backfill": "CASE WHEN JSON_VALID(data) THEN CASE WHEN JSON_TYPE(JSON_EXTRACT(data,'$.p95_ms')) IN ('INTEGER','DOUBLE','DECIMAL') THEN JSON_UNQUOTE(JSON_EXTRACT(data,'$.p95_ms')) ELSE NULL END ELSE NULL END"
+    },
+    {
+      "table": "pressure_report_issues",
+      "name": "source_kind",
+      "definition": "VARCHAR(64) NOT NULL DEFAULT ''",
+      "backfill": "CASE WHEN JSON_VALID(data) THEN CASE WHEN JSON_TYPE(JSON_EXTRACT(data,'$.source_kind'))='STRING' THEN LEFT(JSON_UNQUOTE(JSON_EXTRACT(data,'$.source_kind')),64) ELSE '' END ELSE '' END"
+    },
+    {
+      "table": "pressure_report_issues",
+      "name": "source_name",
+      "definition": "VARCHAR(100) NOT NULL DEFAULT ''",
+      "backfill": "CASE WHEN JSON_VALID(data) THEN CASE WHEN JSON_TYPE(JSON_EXTRACT(data,'$.source_name'))='STRING' THEN LEFT(JSON_UNQUOTE(JSON_EXTRACT(data,'$.source_name')),100) ELSE '' END ELSE '' END"
+    },
+    {
+      "table": "pressure_report_issues",
+      "name": "category",
+      "definition": "VARCHAR(100) NOT NULL DEFAULT ''",
+      "backfill": "CASE WHEN JSON_VALID(data) THEN CASE WHEN JSON_TYPE(JSON_EXTRACT(data,'$.category'))='STRING' THEN LEFT(JSON_UNQUOTE(JSON_EXTRACT(data,'$.category')),100) ELSE '' END ELSE '' END"
+    },
+    {
+      "table": "pressure_report_issues",
+      "name": "level",
+      "definition": "VARCHAR(32) NOT NULL DEFAULT ''",
+      "backfill": "CASE WHEN JSON_VALID(data) THEN CASE WHEN JSON_TYPE(JSON_EXTRACT(data,'$.level'))='STRING' THEN LEFT(JSON_UNQUOTE(JSON_EXTRACT(data,'$.level')),32) ELSE '' END ELSE '' END"
+    },
+    {
+      "table": "pressure_report_issues",
+      "name": "message",
+      "definition": "TEXT NOT NULL",
+      "backfill": "CASE WHEN JSON_VALID(data) THEN CASE WHEN JSON_TYPE(JSON_EXTRACT(data,'$.message'))='STRING' THEN JSON_UNQUOTE(JSON_EXTRACT(data,'$.message')) ELSE '' END ELSE '' END"
+    },
+    {
+      "table": "pressure_report_issues",
+      "name": "first_at",
+      "definition": "BIGINT NULL",
+      "backfill": "CASE WHEN JSON_VALID(data) THEN CASE WHEN JSON_TYPE(JSON_EXTRACT(data,'$.first_at')) IN ('INTEGER','DOUBLE','DECIMAL') THEN JSON_UNQUOTE(JSON_EXTRACT(data,'$.first_at')) ELSE NULL END ELSE NULL END"
+    },
+    {
+      "table": "pressure_report_issues",
+      "name": "last_at",
+      "definition": "BIGINT NULL",
+      "backfill": "CASE WHEN JSON_VALID(data) THEN CASE WHEN JSON_TYPE(JSON_EXTRACT(data,'$.last_at')) IN ('INTEGER','DOUBLE','DECIMAL') THEN JSON_UNQUOTE(JSON_EXTRACT(data,'$.last_at')) ELSE NULL END ELSE NULL END"
+    },
+    {
+      "table": "pressure_report_issues",
+      "name": "line_from",
+      "definition": "BIGINT NOT NULL DEFAULT 0",
+      "backfill": "CASE WHEN JSON_VALID(data) THEN CASE WHEN JSON_TYPE(JSON_EXTRACT(data,'$.line_from')) IN ('INTEGER','DOUBLE','DECIMAL') THEN JSON_UNQUOTE(JSON_EXTRACT(data,'$.line_from')) ELSE 0 END ELSE 0 END"
+    },
+    {
+      "table": "pressure_report_issues",
+      "name": "line_to",
+      "definition": "BIGINT NOT NULL DEFAULT 0",
+      "backfill": "CASE WHEN JSON_VALID(data) THEN CASE WHEN JSON_TYPE(JSON_EXTRACT(data,'$.line_to')) IN ('INTEGER','DOUBLE','DECIMAL') THEN JSON_UNQUOTE(JSON_EXTRACT(data,'$.line_to')) ELSE 0 END ELSE 0 END"
+    },
+    {
+      "table": "pressure_report_metrics",
+      "name": "metric_key",
+      "definition": "VARCHAR(100) NOT NULL DEFAULT ''",
+      "backfill": "CASE WHEN JSON_VALID(data) THEN CASE WHEN JSON_TYPE(COALESCE(NULLIF(JSON_EXTRACT(data,'$.metric_key'),CAST('null' AS JSON)),NULLIF(JSON_EXTRACT(data,'$.key'),CAST('null' AS JSON))))='STRING' THEN LEFT(JSON_UNQUOTE(COALESCE(NULLIF(JSON_EXTRACT(data,'$.metric_key'),CAST('null' AS JSON)),NULLIF(JSON_EXTRACT(data,'$.key'),CAST('null' AS JSON)))),100) ELSE '' END ELSE '' END"
+    },
+    {
+      "table": "pressure_report_metrics",
+      "name": "origin",
+      "definition": "VARCHAR(64) NOT NULL DEFAULT ''",
+      "backfill": "CASE WHEN JSON_VALID(data) THEN CASE WHEN JSON_TYPE(JSON_EXTRACT(data,'$.origin'))='STRING' THEN LEFT(JSON_UNQUOTE(JSON_EXTRACT(data,'$.origin')),64) ELSE '' END ELSE '' END"
+    },
+    {
+      "table": "pressure_report_metrics",
+      "name": "schema_version",
+      "definition": "VARCHAR(32) NOT NULL DEFAULT ''",
+      "backfill": "CASE WHEN JSON_VALID(data) THEN CASE WHEN JSON_TYPE(JSON_EXTRACT(data,'$.schema_version'))='STRING' THEN LEFT(JSON_UNQUOTE(JSON_EXTRACT(data,'$.schema_version')),32) ELSE '' END ELSE '' END"
+    },
+    {
+      "table": "pressure_report_findings",
+      "name": "origin",
+      "definition": "VARCHAR(64) NOT NULL DEFAULT ''",
+      "backfill": "CASE WHEN JSON_VALID(data) THEN CASE WHEN JSON_TYPE(JSON_EXTRACT(data,'$.origin'))='STRING' THEN LEFT(JSON_UNQUOTE(JSON_EXTRACT(data,'$.origin')),64) ELSE '' END ELSE '' END"
+    },
+    {
+      "table": "pressure_report_findings",
+      "name": "level",
+      "definition": "VARCHAR(32) NOT NULL DEFAULT ''",
+      "backfill": "CASE WHEN JSON_VALID(data) THEN CASE WHEN JSON_TYPE(JSON_EXTRACT(data,'$.level'))='STRING' THEN LEFT(JSON_UNQUOTE(JSON_EXTRACT(data,'$.level')),32) ELSE '' END ELSE '' END"
+    },
+    {
+      "table": "pressure_report_findings",
+      "name": "title",
+      "definition": "VARCHAR(500) NOT NULL DEFAULT ''",
+      "backfill": "CASE WHEN JSON_VALID(data) THEN CASE WHEN JSON_TYPE(JSON_EXTRACT(data,'$.title'))='STRING' THEN LEFT(JSON_UNQUOTE(JSON_EXTRACT(data,'$.title')),500) ELSE '' END ELSE '' END"
+    }
+  ]
+}

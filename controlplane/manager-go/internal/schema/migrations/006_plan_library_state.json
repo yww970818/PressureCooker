@@ -1,0 +1,10 @@
+{
+  "version": 6,
+  "name": "plan_library_state",
+  "statements": [
+    "CREATE TABLE IF NOT EXISTS `{{prefix}}plan_library_state`(id VARCHAR(101) COLLATE utf8mb4_bin PRIMARY KEY,project_id VARCHAR(101) COLLATE utf8mb4_bin NOT NULL,archived TINYINT NOT NULL DEFAULT 0,updated_at VARCHAR(64) NOT NULL,INDEX project_archive(project_id,archived,id)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
+  ],
+  "indexes": [
+    {"table":"plans","name":"plans_project_sequence","columns":"project_id,seq"}
+  ]
+}

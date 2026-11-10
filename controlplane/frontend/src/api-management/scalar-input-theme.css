@@ -1,0 +1,13 @@
+.pc-scalar-theme, :global(#headlessui-portal-root.scalar-app) {
+  --scalar-font: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --scalar-font-code: ui-monospace, "SFMono-Regular", "Cascadia Code", Menlo, monospace;
+  --scalar-font-size: 13px; --scalar-small: 12px; --scalar-mini: 11px;
+  --scalar-radius: 8px; --scalar-radius-lg: 10px; --scalar-radius-xl: 12px;
+  --scalar-background-1: var(--surface); --scalar-background-2: var(--surface-alt); --scalar-background-3: color-mix(in srgb, var(--surface-alt) 80%, var(--border));
+  --scalar-background-accent: var(--accent-soft);
+  --scalar-button-1: var(--accent); --scalar-button-1-hover: var(--accent-hover); --scalar-button-1-color: var(--on-accent);
+  --scalar-color-1: var(--text); --scalar-color-2: color-mix(in srgb, var(--text) 75%, var(--muted)); --scalar-color-3: var(--muted); --scalar-color-accent: var(--accent);
+  --scalar-border-color: var(--border); --scalar-scrollbar-color: var(--border); --scalar-scrollbar-color-active: var(--muted);
+  --scalar-color-green: #2a947b; --scalar-color-orange: #bb7d39; --scalar-color-blue: #4684cc; --scalar-color-purple: #9270cb; --scalar-color-red: #ca687b; --scalar-color-yellow: #b68d36;
+}
+.pc-scalar-theme.dark-mode, :global([data-theme="dark"] #headlessui-portal-root.scalar-app) { --scalar-color-green: #80d2b5; --scalar-color-orange: #e2ae78; --scalar-color-blue: #90bbef; --scalar-color-purple: #c1a0ee; --scalar-color-red: #ee9bae; --scalar-color-yellow: #e0c17a; }

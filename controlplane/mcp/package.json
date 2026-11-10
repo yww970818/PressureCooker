@@ -1,0 +1,17 @@
+{
+  "name": "pressurecooker-mcp-dependencies",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.mjs"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.30.0",
+    "jmeter-mcp-server": "0.4.5",
+    "zod": "4.4.3"
+  }
+}
