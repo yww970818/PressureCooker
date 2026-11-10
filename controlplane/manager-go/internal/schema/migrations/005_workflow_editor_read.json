@@ -1,0 +1,8 @@
+{
+  "version": 5,
+  "name": "workflow_editor_read",
+  "columns": [
+    {"table":"workflows","name":"editor_revision","definition":"BIGINT NULL"},
+    {"table":"workflows","name":"editor_payload","definition":"LONGTEXT NULL"}
+  ]
+}

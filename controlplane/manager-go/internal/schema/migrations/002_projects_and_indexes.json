@@ -1,0 +1,88 @@
+{
+  "version": 2,
+  "name": "projects_and_indexes",
+  "columns": [
+    {
+      "table": "plans",
+      "name": "project_id",
+      "definition": "VARCHAR(101) COLLATE utf8mb4_bin NOT NULL DEFAULT 'project-default'"
+    },
+    {
+      "table": "runs",
+      "name": "project_id",
+      "definition": "VARCHAR(101) COLLATE utf8mb4_bin NOT NULL DEFAULT 'project-default'"
+    },
+    {
+      "table": "reports",
+      "name": "project_id",
+      "definition": "VARCHAR(101) COLLATE utf8mb4_bin NOT NULL DEFAULT 'project-default'"
+    },
+    {
+      "table": "workflows",
+      "name": "project_id",
+      "definition": "VARCHAR(101) COLLATE utf8mb4_bin NOT NULL DEFAULT 'project-default'"
+    },
+    {
+      "table": "api_collections",
+      "name": "project_id",
+      "definition": "VARCHAR(101) COLLATE utf8mb4_bin NOT NULL DEFAULT 'project-default'"
+    },
+    {
+      "table": "environments",
+      "name": "project_id",
+      "definition": "VARCHAR(101) COLLATE utf8mb4_bin NOT NULL DEFAULT 'project-default'"
+    }
+  ],
+  "indexes": [
+    {
+      "table": "plans",
+      "name": "project_scope",
+      "columns": "project_id"
+    },
+    {
+      "table": "runs",
+      "name": "project_scope",
+      "columns": "project_id"
+    },
+    {
+      "table": "reports",
+      "name": "project_scope",
+      "columns": "project_id"
+    },
+    {
+      "table": "workflows",
+      "name": "project_scope",
+      "columns": "project_id"
+    },
+    {
+      "table": "api_collections",
+      "name": "project_scope",
+      "columns": "project_id"
+    },
+    {
+      "table": "environments",
+      "name": "project_scope",
+      "columns": "project_id"
+    },
+    {
+      "table": "runs",
+      "name": "runs_project_time",
+      "columns": "project_id,created_at,id"
+    },
+    {
+      "table": "runs",
+      "name": "runs_project_status_time",
+      "columns": "project_id,status,created_at,id"
+    },
+    {
+      "table": "task_dispatches",
+      "name": "dispatch_project_status",
+      "columns": "project_id,status,next_attempt_at,attempts,created_at"
+    },
+    {
+      "table": "pressure_report_jobs",
+      "name": "report_job_project_status",
+      "columns": "project_id,status"
+    }
+  ]
+}

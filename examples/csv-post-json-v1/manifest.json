@@ -1,0 +1,70 @@
+{
+  "name": "CSV 数据集 · 多参数 POST JSON 示例",
+  "version": "v1",
+  "project_id": "project-default",
+  "records": 36,
+  "records_per_worker": 6,
+  "worker_count": 6,
+  "first_record_leaf_values": 88,
+  "dataset_columns": [
+    "case_id",
+    "request_body"
+  ],
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 3865,
+      "sha256": "213cb4524cbe7f5bdf0376e44f6244060bc8548dba857cb16df127308f92f80f"
+    },
+    {
+      "path": "api.openapi.json",
+      "bytes": 18434,
+      "sha256": "2a6b9af2fcf4e234fa341f31dc7bde82f210f271a8c932b69fc0a2b0ec5110f1"
+    },
+    {
+      "path": "csv-post-json.jmx",
+      "bytes": 6583,
+      "sha256": "14e8df12825eecef49752479b13e34fc6e6c1f878a789c669566524241e5dcea"
+    },
+    {
+      "path": "request-body.example.json",
+      "bytes": 3139,
+      "sha256": "bff60470c9fac64cc583275f972c29e63223d34f5d82e812eb17e9e877eef304"
+    },
+    {
+      "path": "requests.csv",
+      "bytes": 109754,
+      "sha256": "c75dd4966bb03469ee50690299fb7f7d3786c5036954fa168ebcf4d029e4783f"
+    },
+    {
+      "path": "worker-1/requests.csv",
+      "bytes": 18303,
+      "sha256": "5e15f29f5df7523c819f4d2fab32d3f4749612af17f48d804791eff9971fb64a"
+    },
+    {
+      "path": "worker-2/requests.csv",
+      "bytes": 18308,
+      "sha256": "d4dacdd432742f48007cc7f23f1023946c34d16bcc4aeff68ba72261216d1add"
+    },
+    {
+      "path": "worker-3/requests.csv",
+      "bytes": 18312,
+      "sha256": "cc72074d693c0d774b5cef7e7b7a2a78ad5bdd113dcea0a2367a6912acfa0bfa"
+    },
+    {
+      "path": "worker-4/requests.csv",
+      "bytes": 18312,
+      "sha256": "055742ef14d56724d15f0b2259b06305566b9c5bf78179d9461f38c7fdee1a18"
+    },
+    {
+      "path": "worker-5/requests.csv",
+      "bytes": 18312,
+      "sha256": "5848779b8dc57f04e1b79a8426021e0f77aaf9d8325863f303e9335b439f5990"
+    },
+    {
+      "path": "worker-6/requests.csv",
+      "bytes": 18312,
+      "sha256": "7880ff978258d2fe964651aa6cbc831bb14002dad8676844c635bfa491755183"
+    }
+  ]
+}

@@ -1,0 +1,71 @@
+/* The embedded editor follows its own available width, rather than Scalar's
+   page-wide breakpoints and 48rem centered address bar. Native controls stay
+   mounted so URL edits, history, shortcuts and response state are preserved. */
+.apimgr-scalar :deep(.apimgr-native-operation){width:100%;min-width:0;min-height:0}
+.apimgr-scalar.has-address-mode{display:grid;grid-template-columns:132px minmax(0,1fr);grid-template-rows:auto minmax(0,1fr);align-items:stretch}
+.apimgr-address-mode{grid-column:1;grid-row:1;display:flex;align-items:flex-start;padding:10px 0 10px 12px;min-width:0}
+.apimgr-address-mode select{width:100%;min-width:0}
+.apimgr-scalar.has-address-mode :deep(.apimgr-native-operation){display:contents}
+.apimgr-scalar.has-address-mode :deep(.apimgr-native-operation > div:first-child){grid-column:2;grid-row:1;min-width:0}
+.apimgr-scalar.has-address-mode :deep(.apimgr-native-operation > .border-t){grid-column:1/-1;grid-row:2;min-width:0}
+.apimgr-scalar.has-address-mode:has(.apimgr-examples){grid-template-rows:auto auto minmax(0,1fr)}
+.apimgr-scalar.has-address-mode .apimgr-examples{grid-column:1/-1;grid-row:1}
+.apimgr-scalar.has-address-mode:has(.apimgr-examples) .apimgr-address-mode,.apimgr-scalar.has-address-mode:has(.apimgr-examples) :deep(.apimgr-native-operation > div:first-child){grid-row:2}
+.apimgr-scalar.has-address-mode:has(.apimgr-examples) :deep(.apimgr-native-operation > .border-t){grid-row:3}
+/* Transport messages share one full-width row below the native address bar.
+   The native body advances only while that optional row is mounted. */
+.apimgr-transport-messages{grid-column:1/-1;grid-row:2;min-width:0;display:flex;flex-direction:column}
+.apimgr-scalar.has-address-mode:has(.apimgr-transport-messages){grid-template-rows:auto auto minmax(0,1fr)}
+.apimgr-scalar.has-address-mode:has(.apimgr-transport-messages) :deep(.apimgr-native-operation > .border-t){grid-row:3}
+.apimgr-scalar.has-address-mode:has(.apimgr-examples):has(.apimgr-transport-messages){grid-template-rows:auto auto auto minmax(0,1fr)}
+.apimgr-scalar.has-address-mode:has(.apimgr-examples) .apimgr-transport-messages{grid-row:3}
+.apimgr-scalar.has-address-mode:has(.apimgr-examples):has(.apimgr-transport-messages) :deep(.apimgr-native-operation > .border-t){grid-row:4}
+.apimgr-scalar :deep(.apimgr-native-operation > div:first-child){min-height:0;padding:0;flex:none}
+.apimgr-scalar :deep(.t-app__top-container){display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px;padding:10px 12px;min-height:0;width:100%}
+.apimgr-scalar :deep(.t-app__top-container > div:empty){display:none}
+.apimgr-scalar :deep(.t-app__top-container > div:has(> .address-bar-bg-states)){order:0;grid-column:1;width:100%;max-width:none;min-width:0;flex-wrap:nowrap;--scalar-address-bar-height:36px}
+.apimgr-scalar :deep(.t-app__top-container > div:last-child){order:1;grid-column:2;min-width:0;margin:0;flex:none;justify-content:flex-end}
+.apimgr-scalar :deep(.address-bar-bg-states){min-width:0;flex:1 1 0;border:1px solid var(--border);border-radius:8px}
+.apimgr-scalar :deep(.address-bar-bg-states > .scroll-timeline-x){flex:1 1 0;min-width:0;width:auto;align-items:center}
+.apimgr-scalar :deep(.address-bar-bg-states [aria-label="路径"]){flex:1 1 0;min-width:0;max-width:none;width:auto}
+.apimgr-scalar :deep(.address-bar-bg-states [aria-label="路径"] .cm-editor){width:100%;min-width:0}
+.apimgr-scalar :deep(.address-bar-bg-states .scroll-timeline-x > .contents > button){max-width:40cqw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:1}
+.apimgr-scalar :deep(.address-bar-bg-states > [data-addressbar-action="send"]){display:flex;min-width:70px;margin-left:5px;border-radius:7px}
+.apimgr-scalar :deep(.t-app__top-container > div:has(> .address-bar-bg-states) > [data-addressbar-action="send"]){display:none}
+.apimgr-scalar :deep(.apimgr-native-operation > .border-t){flex:1;min-height:0}
+.apimgr-scalar :deep(.request-response-header){font-size:13px;font-weight:600;min-width:0}
+.apimgr-scalar :deep(section:first-child > .request-response-header > .group){min-width:0;padding-inline-end:0;flex:1 1 200px}
+.apimgr-scalar :deep(section:first-child > .request-response-header input){min-width:0;max-width:none;width:100%;font-size:13px;font-weight:600}
+.apimgr-scalar :deep(section:first-child > .request-response-header .context-bar-group){position:static;inset:auto;min-width:0;max-width:100%;height:auto;flex-shrink:0;align-self:center}
+.apimgr-scalar.hide-request-name :deep(section:first-child > .request-response-header > .group){display:none}
+.apimgr-scalar.hide-request-name :deep(section:first-child > .request-response-header){justify-content:flex-end;min-height:32px;padding-block:4px}
+
+/* Each pane owns its native header and filters so request tabs sit immediately
+   above request parameters, level with the response header. */
+@container apimgr-client (min-width:700px){
+  .apimgr-scalar :deep(.apimgr-native-operation > .border-t > .custom-scroll){display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:minmax(0,1fr);height:100%;min-width:0;min-height:0;overflow:hidden}
+  .apimgr-scalar :deep(.apimgr-native-operation > .border-t > .custom-scroll > section){grid-row:1;display:flex;flex-direction:column;min-width:0;min-height:0;height:100%;overflow:hidden}
+  .apimgr-scalar :deep(.apimgr-native-operation > .border-t > .custom-scroll > section:first-child){grid-column:1}
+  .apimgr-scalar :deep(.apimgr-native-operation > .border-t > .custom-scroll > section > .request-response-header){position:relative;top:auto;z-index:2;gap:8px;flex-shrink:0;min-height:44px;height:44px;padding:4px 12px;margin:0;border-bottom:1px solid var(--border)}
+  .apimgr-scalar :deep(.apimgr-native-operation > .border-t > .custom-scroll > section:first-child > .request-section-content){flex:1;min-width:0;min-height:0;height:auto;overflow:auto}
+  .apimgr-scalar :deep(.apimgr-native-operation > .border-t > .custom-scroll > section:last-child){grid-column:2;border-left:1px solid var(--border);border-top:0}
+  .apimgr-scalar :deep(.response-section-content){flex:1;min-height:0;height:auto;overflow:auto}
+}
+@container apimgr-client (max-width:699px){
+  .apimgr-scalar :deep(.t-app__top-container > div:has(> .address-bar-bg-states)){grid-column:1/-1}
+  .apimgr-scalar :deep(.t-app__top-container > div:last-child){grid-column:1/-1;justify-self:end}
+  .apimgr-scalar :deep(.apimgr-native-operation > .border-t > .custom-scroll){display:flex;flex-direction:column;min-height:0;height:100%;overflow:auto}
+  .apimgr-scalar :deep(.apimgr-native-operation > .border-t > .custom-scroll > section){display:flex;flex-direction:column;flex:none;height:auto;min-width:0;overflow:visible;border-left:0}
+  .apimgr-scalar :deep(.request-section-content),.apimgr-scalar :deep(.response-section-content){height:auto;overflow:visible}
+  .apimgr-scalar :deep(.request-response-header){flex-wrap:wrap;gap:4px;position:relative;top:auto}
+}
+@container apimgr-client (max-width:479px){
+  .apimgr-scalar :deep(.t-app__top-container > div:has(> .address-bar-bg-states)){display:grid;grid-template-columns:minmax(0,1fr) auto;gap:7px}
+  .apimgr-scalar :deep(.address-bar-bg-states){grid-column:1/-1;width:100%}
+  .apimgr-scalar :deep(.address-bar-bg-states > [data-addressbar-action="send"]){display:none}
+  .apimgr-scalar :deep(.t-app__top-container > div:has(> .address-bar-bg-states) > [data-addressbar-action="send"]){display:flex;grid-column:2;justify-self:end;margin:0;padding:7px 18px;border-radius:7px}
+  .apimgr-scalar :deep(.address-bar-bg-states > .scroll-timeline-x){overflow-x:auto;scrollbar-width:none}
+  .apimgr-scalar :deep(.address-bar-bg-states [aria-label="路径"]){min-width:80px}
+  .apimgr-scalar :deep(.address-bar-bg-states .scroll-timeline-x > .contents > button){max-width:30cqw}
+}
+@media(max-width:760px){.apimgr-scalar.has-address-mode{grid-template-columns:124px minmax(0,1fr)}}

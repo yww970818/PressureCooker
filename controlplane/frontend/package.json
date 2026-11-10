@@ -1,0 +1,35 @@
+{
+  "name": "pressurecooker-frontend",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "vite build",
+    "preview": "vite preview --host 127.0.0.1",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@logicflow/core": "2.2.5",
+    "@scalar/api-client": "3.23.6",
+    "@scalar/components": "0.33.1",
+    "@scalar/helpers": "0.16.4",
+    "@scalar/use-codemirror": "0.14.16",
+    "@scalar/use-toasts": "0.10.6",
+    "@scalar/workspace-store": "0.69.3",
+    "jsonc-parser": "3.3.1",
+    "vue": "3.5.44",
+    "yaml": "2.9.1"
+  },
+  "devDependencies": {
+    "@testing-library/vue": "8.1.0",
+    "@vitejs/plugin-vue": "6.0.10",
+    "@vue/test-utils": "2.4.11",
+    "jsdom": "26.1.0",
+    "vite": "8.3.5",
+    "vitest": "4.1.12"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  }
+}

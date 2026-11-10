@@ -1,0 +1,129 @@
+{
+  "requestId": "DEMO-REQUEST-0001",
+  "requestTime": "2026-11-06T10:01:00+08:00",
+  "tenantId": "DEMO-TENANT",
+  "sourceChannel": "APP",
+  "language": "zh-CN",
+  "customer": {
+    "id": "DEMO-CUSTOMER-0001",
+    "name": "模拟用户01",
+    "mobile": "00000000001",
+    "email": "customer0001@example.invalid",
+    "memberLevel": "NORMAL",
+    "memberId": "DEMO-MEMBER-0001",
+    "labels": [
+      "压测样例",
+      "普通咨询"
+    ]
+  },
+  "store": {
+    "id": "DEMO-STORE-001",
+    "name": "示例门店1",
+    "city": "深圳",
+    "region": "演示区域",
+    "channel": "ONLINE"
+  },
+  "order": {
+    "id": "DEMO-ORDER-0001",
+    "channel": "APP",
+    "paidAt": "2026-11-06T09:00:00+08:00",
+    "totalAmount": 12.5,
+    "currency": "CNY",
+    "payment": {
+      "method": "WECHAT",
+      "transactionId": "DEMO-PAYMENT-0001",
+      "paidAmount": 12.5,
+      "installments": 0
+    },
+    "delivery": {
+      "type": "HOME_DELIVERY",
+      "trackingNo": "DEMO-TRACK-0001",
+      "address": {
+        "province": "广东省",
+        "city": "深圳市",
+        "district": "示例区",
+        "street": "示例路1号，演示地址",
+        "postalCode": "000000",
+        "contactName": "模拟收件人01",
+        "contactMobile": "00000000001"
+      }
+    }
+  },
+  "ticket": {
+    "type": "CUSTOMER_SERVICE",
+    "category": "普通咨询",
+    "subCategory": "DEMO-CATEGORY-1",
+    "priority": "LOW",
+    "title": "CSV多参数JSON演示-CSV-DEMO-0001",
+    "description": "普通咨询，样例编号 CSV-DEMO-0001。",
+    "reasonCode": "DEMO-REASON-1",
+    "contactPreference": "SMS",
+    "expectedReplyAt": "2026-11-07T18:00:00+08:00",
+    "tags": [
+      "CSV示例",
+      "普通咨询"
+    ],
+    "assignedGroupId": "DEMO-GROUP-1",
+    "agentId": "DEMO-AGENT-1",
+    "fields": {
+      "receiptNumber": "DEMO-RECEIPT-0001",
+      "loyaltyPoints": 101,
+      "refundAmount": 0,
+      "refundRequired": false,
+      "hasInvoice": true,
+      "invoiceTitle": "示例公司",
+      "invoiceType": "NORMAL"
+    }
+  },
+  "items": [
+    {
+      "sku": "DEMO-SKU-0001-1",
+      "barcode": "DEMO-BARCODE-0001-1",
+      "name": "示例牛奶",
+      "quantity": 1,
+      "unitPrice": 12.5,
+      "unit": "件",
+      "refundQuantity": 0,
+      "batchNo": "BATCH-1-1",
+      "productionDate": "2026-11-01",
+      "expiryDate": "2026-11-30"
+    }
+  ],
+  "attachments": [],
+  "permissions": {
+    "allowSms": true,
+    "allowEmail": true,
+    "allowCallback": true,
+    "marketingConsent": false
+  },
+  "customFields": [
+    {
+      "key": "demo_source",
+      "value": "CSV_DATASET",
+      "type": "string"
+    },
+    {
+      "key": "demo_amount",
+      "value": 12.5,
+      "type": "number"
+    },
+    {
+      "key": "demo_flag",
+      "value": true,
+      "type": "boolean"
+    }
+  ],
+  "metadata": {
+    "testBatch": "csv-post-json-v1",
+    "dataVersion": 1,
+    "caseId": "CSV-DEMO-0001",
+    "workerShard": "worker-1",
+    "scenario": "普通咨询",
+    "nullableValue": null,
+    "attributes": {
+      "campaignId": "DEMO-CAMPAIGN",
+      "clientVersion": "1.0.0",
+      "deviceId": "DEMO-DEVICE-0001"
+    }
+  }
+}

@@ -1,0 +1,11 @@
+runtime
+cluster.env
+.git
+__pycache__
+controlplane/frontend/node_modules
+controlplane/mcp/node_modules
+controlplane/frontend/design
+**/.build
+**/__pycache__
+
+**/._*

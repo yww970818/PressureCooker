@@ -1,0 +1,21 @@
+.cluster-groups { display: grid; gap: 20px; margin: 20px 0; }
+.cluster-group { padding: 22px; min-width: 0; }
+.cluster-group-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; margin-bottom: 16px; }
+.cluster-identity { min-width: 0; flex: 1; }
+.cluster-identity h2 { margin: 0; overflow-wrap: anywhere; }
+.cluster-identity p { margin: 8px 0 0; font-size: 13px; }
+.cluster-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.cluster-name-edit { display: flex; align-items: flex-end; gap: 10px; flex-wrap: wrap; }
+.cluster-name-edit .field { margin-bottom: 0; flex: 1; min-width: 160px; }
+.cluster-source { display: flex; align-items: center; gap: 7px; font-size: 13px; color: var(--muted); line-height: 1.6; }
+.cluster-node-table { min-width: 700px; }
+.cluster-mapping-list { display: grid; gap: 10px; margin: 20px 0; }
+.cluster-node-option { display: flex; align-items: center; gap: 12px; border: 1px solid var(--border); border-radius: 10px; padding: 14px; cursor: pointer; }
+.cluster-node-option input { width: 17px; height: 17px; accent-color: var(--accent); }
+.cluster-node-option small { display: block; margin-top: 5px; color: var(--muted); }
+.run-cluster-hint { margin: -4px 0 18px; font-size: 13px; line-height: 1.7; color: var(--muted); overflow-wrap: anywhere; }
+@media (max-width: 650px) { .cluster-group { padding: 16px; } .cluster-group-heading { flex-direction: column; } .cluster-group-heading > .cluster-actions { width: 100%; } .cluster-name-edit { align-items: stretch; } .cluster-node-option { align-items: flex-start; } }
+
+.run-webhook-status { padding: 16px; margin: 16px 0; border: 1px solid var(--border); border-radius: 10px; background: var(--surface-alt); }
+.run-webhook-status h3 { margin: 0 0 8px; font-size: 14px; }
+.run-webhook-status p { margin: 4px 0; }

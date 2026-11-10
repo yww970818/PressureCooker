@@ -1,0 +1,420 @@
+name: pressurecooker
+x-execution-env: &execution-env
+  JMETER_REDIS_ADDR: ${JMETER_REDIS_ADDR:-host.docker.internal:6379}
+  JMETER_REDIS_PASSWORD_FILE: /run/platform/redis-password
+  JMETER_REDIS_DB: ${JMETER_REDIS_DB:-0}
+  JMETER_REDIS_PREFIX: ${JMETER_REDIS_PREFIX:-jmeter:v2}
+  JMETER_ARCHIVE_ENDPOINT: http://minio:9000
+  JMETER_ARCHIVE_BUCKET: jmeter-reports
+  JMETER_ARCHIVE_ACCESS_KEY_FILE: /run/platform/minio-access-key
+  JMETER_ARCHIVE_SECRET_KEY_FILE: /run/platform/minio-secret-key
+  JMETER_ARCHIVE_REGION: us-east-1
+  JMETER_WORK_DIR: /work
+  JMETER_COMMON_PROPERTIES: /opt/cluster/conf/common.properties
+  PRESSURECOOKER_MANAGER_URL: ${PRESSURECOOKER_MANAGER_URL:-http://manager:8080}
+
+x-node: &node
+  image: ${JMETER_IMAGE:-pressurecooker-platform:local}
+  pull_policy: never
+  user: "${JMETER_UID:-1000}:${JMETER_GID:-1000}"
+  command: [agent]
+  depends_on:
+    minio: {condition: service_healthy}
+  read_only: true
+  restart: unless-stopped
+  tmpfs: ["/tmp:size=256m,mode=1777"]
+  security_opt: ["no-new-privileges:true"]
+  cap_drop: [ALL]
+  networks: [jmeter]
+  logging:
+    driver: json-file
+    options: {max-size: 10m, max-file: "3"}
+  healthcheck:
+    test: ["CMD", "bash", "-ec", "exec 3<>/dev/tcp/127.0.0.1/8082; printf \"GET /healthz HTTP/1.0\\r\\nHost: localhost\\r\\n\\r\\n\" >&3; cat <&3 | grep -Eq '\"ready\"[[:space:]]*:[[:space:]]*true'"]
+    interval: 10s
+    timeout: 5s
+    retries: 6
+    start_period: 30s
+
+x-manager: &manager
+  image: ${JMETER_MANAGER_IMAGE:-pressurecooker-manager:local}
+  pull_policy: never
+  user: "${JMETER_UID:-1000}:${JMETER_GID:-1000}"
+  restart: unless-stopped
+  read_only: true
+  tmpfs: ["/tmp:size=256m,mode=1777"]
+  security_opt: ["no-new-privileges:true"]
+  cap_drop: [ALL]
+  networks: [jmeter]
+  extra_hosts: ["host.docker.internal:host-gateway"]
+  cpus: 1.0
+  mem_limit: 1g
+  logging:
+    driver: json-file
+    options: {max-size: 10m, max-file: "3"}
+  volumes:
+    - ./runtime/state:/state
+    - ./runtime/results:/results
+    - ./plans:/plans
+    - ./runtime/secrets/platform:/run/platform:ro
+    - ./runtime/backups:/backup
+    - ./runtime/restore:/restore
+  healthcheck:
+    test: [CMD, /app/bin/jmeter-manager, health]
+    interval: 10s
+    timeout: 5s
+    retries: 5
+    start_period: 20s
+
+services:
+
+  controller-a:
+    <<: *node
+    user: "0:0"
+    cap_add: [SETUID, SETGID, CHOWN, DAC_OVERRIDE, KILL]
+    hostname: controller-a
+    cpus: 1.0
+    mem_limit: 2g
+    ulimits:
+      nofile: {soft: 65536, hard: 65536}
+    environment:
+      <<: *execution-env
+      JMETER_AGENT_ID: controller-a
+      PRESSURECOOKER_NODE_NAME: PressureCooker-Core-1
+      JMETER_AGENT_ROLE: controller
+      JMETER_CLUSTER_ID: cluster-7ba589c761abd60ec4522bf2
+      JMETER_AGENT_TOKEN_FILE: /run/platform/agent-token
+      JMETER_AGENT_STATE_DIR: /work/state
+      JMETER_PLANS_DIR: /plans
+      JMETER_RESULTS_DIR: /work/tasks
+      JMETER_RMI_PROPERTIES: /run/jmeter-rmi/rmi.properties
+      JMETER_ENGINE_HEAP: -Xms256m -Xmx1024m
+    volumes:
+      - ./runtime/secrets/platform/agent-token:/run/platform/agent-token:ro
+      - ./runtime/secrets/platform/redis-password:/run/platform/redis-password:ro
+      - ./runtime/secrets/platform/minio-access-key:/run/platform/minio-access-key:ro
+      - ./runtime/secrets/platform/minio-secret-key:/run/platform/minio-secret-key:ro
+      - ./runtime/secrets/rmi-jvm:/run/jmeter-rmi:ro
+      - ./runtime/data/controller-a:/data:ro
+      - ./runtime/work/controller-a:/work
+
+    build:
+      context: .
+      args:
+        JDK_BASE_IMAGE: ${JDK_BASE_IMAGE:-mcr.microsoft.com/openjdk/jdk:21-ubuntu}
+
+  controller-b:
+    <<: *node
+    user: "0:0"
+    cap_add: [SETUID, SETGID, CHOWN, DAC_OVERRIDE, KILL]
+    hostname: controller-b
+    cpus: 1.0
+    mem_limit: 2g
+    ulimits:
+      nofile: {soft: 65536, hard: 65536}
+    environment:
+      <<: *execution-env
+      JMETER_AGENT_ID: controller-b
+      PRESSURECOOKER_NODE_NAME: PressureCooker-Core-2
+      JMETER_AGENT_ROLE: controller
+      JMETER_CLUSTER_ID: cluster-825e2a15499112b4e0e88ed1
+      JMETER_AGENT_TOKEN_FILE: /run/platform/agent-token
+      JMETER_AGENT_STATE_DIR: /work/state
+      JMETER_PLANS_DIR: /plans
+      JMETER_RESULTS_DIR: /work/tasks
+      JMETER_RMI_PROPERTIES: /run/jmeter-rmi/rmi.properties
+      JMETER_ENGINE_HEAP: -Xms256m -Xmx1024m
+    volumes:
+      - ./runtime/secrets/platform/agent-token:/run/platform/agent-token:ro
+      - ./runtime/secrets/platform/redis-password:/run/platform/redis-password:ro
+      - ./runtime/secrets/platform/minio-access-key:/run/platform/minio-access-key:ro
+      - ./runtime/secrets/platform/minio-secret-key:/run/platform/minio-secret-key:ro
+      - ./runtime/secrets/rmi-jvm:/run/jmeter-rmi:ro
+      - ./runtime/data/controller-b:/data:ro
+      - ./runtime/work/controller-b:/work
+
+  worker-1:
+    <<: *node
+    user: "0:0"
+    cap_add: [SETUID, SETGID, CHOWN, DAC_OVERRIDE, KILL]
+    hostname: worker-1
+    cpus: 2.0
+    mem_limit: ${JMETER_WORKER_MEMORY_LIMIT:-2g}
+    ulimits:
+      nofile: {soft: 65536, hard: 65536}
+    environment:
+      <<: *execution-env
+      JMETER_AGENT_ID: worker-1
+      JMETER_AGENT_ROLE: worker
+      JMETER_AGENT_TOKEN_FILE: /run/platform/agent-token
+      JMETER_AGENT_STATE_DIR: /work/state
+      JMETER_PLANS_DIR: /plans
+      JMETER_RESULTS_DIR: /work/tasks
+      JMETER_RMI_PROPERTIES: /run/jmeter-rmi/rmi.properties
+      JMETER_ENGINE_HEAP: -Xms256m -Xmx1024m
+    volumes:
+      - ./runtime/secrets/platform/agent-token:/run/platform/agent-token:ro
+      - ./runtime/secrets/platform/redis-password:/run/platform/redis-password:ro
+      - ./runtime/secrets/platform/minio-access-key:/run/platform/minio-access-key:ro
+      - ./runtime/secrets/platform/minio-secret-key:/run/platform/minio-secret-key:ro
+      - ./runtime/secrets/rmi-jvm:/run/jmeter-rmi:ro
+      - ./runtime/data/worker-1:/data:ro
+      - ./runtime/work/worker-1:/work
+
+  worker-2:
+    <<: *node
+    user: "0:0"
+    cap_add: [SETUID, SETGID, CHOWN, DAC_OVERRIDE, KILL]
+    hostname: worker-2
+    cpus: 2.0
+    mem_limit: ${JMETER_WORKER_MEMORY_LIMIT:-2g}
+    ulimits:
+      nofile: {soft: 65536, hard: 65536}
+    environment:
+      <<: *execution-env
+      JMETER_AGENT_ID: worker-2
+      JMETER_AGENT_ROLE: worker
+      JMETER_AGENT_TOKEN_FILE: /run/platform/agent-token
+      JMETER_AGENT_STATE_DIR: /work/state
+      JMETER_PLANS_DIR: /plans
+      JMETER_RESULTS_DIR: /work/tasks
+      JMETER_RMI_PROPERTIES: /run/jmeter-rmi/rmi.properties
+      JMETER_ENGINE_HEAP: -Xms256m -Xmx1024m
+    volumes:
+      - ./runtime/secrets/platform/agent-token:/run/platform/agent-token:ro
+      - ./runtime/secrets/platform/redis-password:/run/platform/redis-password:ro
+      - ./runtime/secrets/platform/minio-access-key:/run/platform/minio-access-key:ro
+      - ./runtime/secrets/platform/minio-secret-key:/run/platform/minio-secret-key:ro
+      - ./runtime/secrets/rmi-jvm:/run/jmeter-rmi:ro
+      - ./runtime/data/worker-2:/data:ro
+      - ./runtime/work/worker-2:/work
+
+  worker-3:
+    <<: *node
+    user: "0:0"
+    cap_add: [SETUID, SETGID, CHOWN, DAC_OVERRIDE, KILL]
+    hostname: worker-3
+    cpus: 2.0
+    mem_limit: ${JMETER_WORKER_MEMORY_LIMIT:-2g}
+    ulimits:
+      nofile: {soft: 65536, hard: 65536}
+    environment:
+      <<: *execution-env
+      JMETER_AGENT_ID: worker-3
+      JMETER_AGENT_ROLE: worker
+      JMETER_AGENT_TOKEN_FILE: /run/platform/agent-token
+      JMETER_AGENT_STATE_DIR: /work/state
+      JMETER_PLANS_DIR: /plans
+      JMETER_RESULTS_DIR: /work/tasks
+      JMETER_RMI_PROPERTIES: /run/jmeter-rmi/rmi.properties
+      JMETER_ENGINE_HEAP: -Xms256m -Xmx1024m
+    volumes:
+      - ./runtime/secrets/platform/agent-token:/run/platform/agent-token:ro
+      - ./runtime/secrets/platform/redis-password:/run/platform/redis-password:ro
+      - ./runtime/secrets/platform/minio-access-key:/run/platform/minio-access-key:ro
+      - ./runtime/secrets/platform/minio-secret-key:/run/platform/minio-secret-key:ro
+      - ./runtime/secrets/rmi-jvm:/run/jmeter-rmi:ro
+      - ./runtime/data/worker-3:/data:ro
+      - ./runtime/work/worker-3:/work
+
+  worker-4:
+    <<: *node
+    user: "0:0"
+    cap_add: [SETUID, SETGID, CHOWN, DAC_OVERRIDE, KILL]
+    hostname: worker-4
+    cpus: 2.0
+    mem_limit: ${JMETER_WORKER_MEMORY_LIMIT:-2g}
+    ulimits:
+      nofile: {soft: 65536, hard: 65536}
+    environment:
+      <<: *execution-env
+      JMETER_AGENT_ID: worker-4
+      JMETER_AGENT_ROLE: worker
+      JMETER_AGENT_TOKEN_FILE: /run/platform/agent-token
+      JMETER_AGENT_STATE_DIR: /work/state
+      JMETER_PLANS_DIR: /plans
+      JMETER_RESULTS_DIR: /work/tasks
+      JMETER_RMI_PROPERTIES: /run/jmeter-rmi/rmi.properties
+      JMETER_ENGINE_HEAP: -Xms256m -Xmx1024m
+    volumes:
+      - ./runtime/secrets/platform/agent-token:/run/platform/agent-token:ro
+      - ./runtime/secrets/platform/redis-password:/run/platform/redis-password:ro
+      - ./runtime/secrets/platform/minio-access-key:/run/platform/minio-access-key:ro
+      - ./runtime/secrets/platform/minio-secret-key:/run/platform/minio-secret-key:ro
+      - ./runtime/secrets/rmi-jvm:/run/jmeter-rmi:ro
+      - ./runtime/data/worker-4:/data:ro
+      - ./runtime/work/worker-4:/work
+
+  worker-5:
+    <<: *node
+    user: "0:0"
+    cap_add: [SETUID, SETGID, CHOWN, DAC_OVERRIDE, KILL]
+    hostname: worker-5
+    cpus: 2.0
+    mem_limit: ${JMETER_WORKER_MEMORY_LIMIT:-2g}
+    ulimits:
+      nofile: {soft: 65536, hard: 65536}
+    environment:
+      <<: *execution-env
+      JMETER_AGENT_ID: worker-5
+      JMETER_AGENT_ROLE: worker
+      JMETER_AGENT_TOKEN_FILE: /run/platform/agent-token
+      JMETER_AGENT_STATE_DIR: /work/state
+      JMETER_PLANS_DIR: /plans
+      JMETER_RESULTS_DIR: /work/tasks
+      JMETER_RMI_PROPERTIES: /run/jmeter-rmi/rmi.properties
+      JMETER_ENGINE_HEAP: -Xms256m -Xmx1024m
+    volumes:
+      - ./runtime/secrets/platform/agent-token:/run/platform/agent-token:ro
+      - ./runtime/secrets/platform/redis-password:/run/platform/redis-password:ro
+      - ./runtime/secrets/platform/minio-access-key:/run/platform/minio-access-key:ro
+      - ./runtime/secrets/platform/minio-secret-key:/run/platform/minio-secret-key:ro
+      - ./runtime/secrets/rmi-jvm:/run/jmeter-rmi:ro
+      - ./runtime/data/worker-5:/data:ro
+      - ./runtime/work/worker-5:/work
+
+  worker-6:
+    <<: *node
+    user: "0:0"
+    cap_add: [SETUID, SETGID, CHOWN, DAC_OVERRIDE, KILL]
+    hostname: worker-6
+    cpus: 2.0
+    mem_limit: ${JMETER_WORKER_MEMORY_LIMIT:-2g}
+    ulimits:
+      nofile: {soft: 65536, hard: 65536}
+    environment:
+      <<: *execution-env
+      JMETER_AGENT_ID: worker-6
+      JMETER_AGENT_ROLE: worker
+      JMETER_AGENT_TOKEN_FILE: /run/platform/agent-token
+      JMETER_AGENT_STATE_DIR: /work/state
+      JMETER_PLANS_DIR: /plans
+      JMETER_RESULTS_DIR: /work/tasks
+      JMETER_RMI_PROPERTIES: /run/jmeter-rmi/rmi.properties
+      JMETER_ENGINE_HEAP: -Xms256m -Xmx1024m
+    volumes:
+      - ./runtime/secrets/platform/agent-token:/run/platform/agent-token:ro
+      - ./runtime/secrets/platform/redis-password:/run/platform/redis-password:ro
+      - ./runtime/secrets/platform/minio-access-key:/run/platform/minio-access-key:ro
+      - ./runtime/secrets/platform/minio-secret-key:/run/platform/minio-secret-key:ro
+      - ./runtime/secrets/rmi-jvm:/run/jmeter-rmi:ro
+      - ./runtime/data/worker-6:/data:ro
+      - ./runtime/work/worker-6:/work
+
+  manager:
+    <<: *manager
+    ports:
+      - "${JMETER_BIND_ADDRESS:-0.0.0.0}:${JMETER_API_PORT:-18090}:8080"
+      - "${JMETER_MCP_BIND_ADDRESS:-0.0.0.0}:${JMETER_MCP_PORT:-18091}:8081"
+    hostname: manager
+    environment:
+      JMETER_MANAGER_ID: manager
+      JMETER_WORKFLOW_MAX_NODES: ${JMETER_WORKFLOW_MAX_NODES:-5000}
+      JMETER_WORKFLOW_MAX_EDGES: ${JMETER_WORKFLOW_MAX_EDGES:-10000}
+      JMETER_WORKFLOW_BODY_MIB: ${JMETER_WORKFLOW_BODY_MIB:-32}
+      JMETER_REDIS_ADDR: ${JMETER_REDIS_ADDR:-host.docker.internal:6379}
+      JMETER_REDIS_PASSWORD_FILE: /run/platform/redis-password
+      JMETER_REDIS_DB: ${JMETER_REDIS_DB:-0}
+      JMETER_REDIS_PREFIX: ${JMETER_REDIS_PREFIX:-jmeter:v2}
+      JMETER_RUNNER_CALLBACK_URL: ${JMETER_RUNNER_CALLBACK_URL:-http://manager:8080/api/runner/callback}
+      JMETER_MANAGER_PORT: "8080"
+      JMETER_MCP_ENABLED: "1"
+      JMETER_MCP_HOST: 0.0.0.0
+      JMETER_MCP_PORT: "8081"
+      JMETER_MCP_PUBLIC_URL: ${JMETER_MCP_PUBLIC_URL:-http://localhost:18091/mcp}
+      JMETER_MCP_WORKSPACE: /state/jmeter-mcp
+      JMETER_API_URL: http://127.0.0.1:8080
+      JMETER_MYSQL_HOST: ${JMETER_MYSQL_HOST:-host.docker.internal}
+      JMETER_MYSQL_PORT: ${JMETER_MYSQL_PORT:-3306}
+      JMETER_MYSQL_DATABASE: ${JMETER_MYSQL_DATABASE:-jmeter}
+      JMETER_MYSQL_USER: ${JMETER_MYSQL_USER:-jmeter}
+      JMETER_MYSQL_PASSWORD_FILE: /run/platform/mysql-password
+      JMETER_STATE_DIR: /state
+      JMETER_PLANS_DIR: /plans
+      JMETER_RESULTS_DIR: /results
+      JMETER_FRONTEND_DIR: /app/frontend
+      JMETER_ADMIN_TOKEN_FILE: /run/platform/admin-token
+      JMETER_SESSION_KEY_FILE: /run/platform/session-key
+      JMETER_AGENT_TOKEN_FILE: /run/platform/agent-token
+      JMETER_CONTROLLER_URLS: '{"controller-a":"http://controller-a:8082","controller-b":"http://controller-b:8082"}'
+      JMETER_WORKER_URLS: '{"worker-1":"http://worker-1:8082","worker-2":"http://worker-2:8082","worker-3":"http://worker-3:8082","worker-4":"http://worker-4:8082","worker-5":"http://worker-5:8082","worker-6":"http://worker-6:8082"}'
+      PRESSURECOOKER_CLUSTER_WORKERS: '{"controller-a":["worker-1","worker-2"],"controller-b":["worker-3","worker-4","worker-5","worker-6"]}'
+      JMETER_ARCHIVE_ENDPOINT: http://minio:9000
+      JMETER_ARCHIVE_BUCKET: jmeter-reports
+      JMETER_ARCHIVE_ACCESS_KEY_FILE: /run/platform/minio-access-key
+      JMETER_ARCHIVE_SECRET_KEY_FILE: /run/platform/minio-secret-key
+
+    build:
+      context: .
+      dockerfile: Dockerfile.manager
+      args:
+        MANAGER_BASE_IMAGE: ${JMETER_MANAGER_BASE_IMAGE:-pressurecooker-control-base:local}
+
+  init:
+    <<: *node
+    profiles: [tools]
+    restart: "no"
+    command: [init-keystore]
+    volumes:
+      - ./runtime/secrets/rmi:/run/jmeter-rmi
+    healthcheck: {disable: true}
+
+  smoke-target:
+    <<: *node
+    profiles: [selftest]
+    hostname: smoke-target
+    command: [fixture]
+    cpus: 0.5
+    mem_limit: 512m
+    volumes:
+      - ./runtime/work/smoke-target:/work
+    healthcheck:
+      test: [CMD, bash, -c, 'exec 3<>/dev/tcp/127.0.0.1/8080']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+
+  minio:
+    image: ${MINIO_IMAGE:-pressurecooker-minio:2025-10-15}
+    pull_policy: never
+    build:
+      context: .
+      dockerfile: Dockerfile.minio
+      args:
+        MINIO_BASE_IMAGE: ${JDK_BASE_IMAGE:-mcr.microsoft.com/openjdk/jdk:21-ubuntu}
+    user: "${JMETER_UID:-1000}:${JMETER_GID:-1000}"
+    hostname: minio
+    command: [server, /data, --console-address, ":9001"]
+    restart: unless-stopped
+    read_only: true
+    tmpfs: ["/tmp:size=128m,mode=1777"]
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: [ALL]
+    networks: [jmeter]
+    cpus: 2.0
+    mem_limit: 2g
+    environment:
+      MINIO_ROOT_USER_FILE: /run/secrets/access-key
+      MINIO_ROOT_PASSWORD_FILE: /run/secrets/secret-key
+      MINIO_BROWSER_REDIRECT_URL: ${MINIO_BROWSER_REDIRECT_URL:-}
+    ports:
+      - "${MINIO_BIND_ADDRESS:-0.0.0.0}:${MINIO_API_PORT:-19000}:9000"
+      - "${MINIO_BIND_ADDRESS:-0.0.0.0}:${MINIO_CONSOLE_PORT:-19001}:9001"
+    volumes:
+      - ./runtime/minio:/data
+      - ./runtime/secrets/platform/minio-access-key:/run/secrets/access-key:ro
+      - ./runtime/secrets/platform/minio-secret-key:/run/secrets/secret-key:ro
+    healthcheck:
+      test: [CMD, bash, -ec, 'exec 3<>/dev/tcp/127.0.0.1/9000; printf "GET /minio/health/live HTTP/1.0\r\nHost: localhost\r\n\r\n" >&3; head -1 <&3 | grep -q "200 OK"']
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 20s
+    logging:
+      driver: json-file
+      options: {max-size: 10m, max-file: "3"}
+
+networks:
+  jmeter:
+    driver: bridge

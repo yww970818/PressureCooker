@@ -1,0 +1,21 @@
+{
+  "version": 7,
+  "name": "query_indexes",
+  "indexes": [
+    {
+      "table": "workflow_datasets",
+      "name": "dataset_project_time",
+      "columns": "project_id,deleted,created_at,id"
+    },
+    {
+      "table": "workflow_datasets",
+      "name": "dataset_workflow_time",
+      "columns": "project_id,workflow_id,deleted,created_at,id"
+    },
+    {
+      "table": "pressure_reports",
+      "name": "report_project_time",
+      "columns": "project_id,created_at,version,id"
+    }
+  ]
+}

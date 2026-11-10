@@ -1,0 +1,52 @@
+/* One visual contract for business selects, project choices and Scalar menus.
+   Native select semantics remain intact; base-select progressively styles the
+   browser-owned picker without replacing Vue v-model or keyboard behavior. */
+:root{--dropdown-height:36px;--dropdown-radius:8px;--dropdown-panel-radius:12px;--dropdown-font-size:12px;--dropdown-shadow:0 12px 35px color-mix(in srgb,var(--text) 13%,transparent)}
+/* These declarations deliberately override older page-scoped control sizes. */
+select.ui-select,.ui-dropdown-trigger{
+  min-height:var(--dropdown-height)!important;min-width:0;max-width:100%;
+  border:1px solid var(--border)!important;border-radius:var(--dropdown-radius)!important;
+  background-color:var(--surface)!important;color:var(--text)!important;
+  font-family:inherit;font-size:var(--dropdown-font-size)!important;line-height:1.5;
+  padding:7px 10px!important;box-shadow:none!important;cursor:pointer;
+}
+select.ui-select:enabled:hover,.ui-dropdown-trigger:enabled:hover{border-color:color-mix(in srgb,var(--accent) 50%,var(--border))!important}
+select.ui-select:focus-visible,.ui-dropdown-trigger:focus-visible{outline:2px solid color-mix(in srgb,var(--accent) 55%,transparent);outline-offset:2px;border-color:var(--accent)!important}
+select.ui-select:disabled,.ui-dropdown-trigger:disabled{cursor:default;opacity:.55}
+select.ui-select[aria-invalid="true"]{border-color:var(--danger)!important}
+select.ui-select option{background:var(--surface);color:var(--text);font:inherit}
+select.ui-select option:disabled{color:var(--muted)}
+.ui-dropdown-trigger>svg:last-child{width:15px;height:15px;flex:none;color:var(--muted)}
+
+@supports(appearance:base-select){
+  select.ui-select,select.ui-select::picker(select){appearance:base-select}
+  select.ui-select{display:flex;align-items:center;justify-content:space-between;gap:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  select.ui-select::picker-icon{color:var(--muted);font-size:12px;transition:rotate .15s;flex:none}
+  select.ui-select:open::picker-icon{rotate:180deg}
+  select.ui-select:open{border-color:var(--accent)!important}
+  select.ui-select::picker(select){
+    margin:6px 0;padding:5px;border:1px solid var(--border);border-radius:var(--dropdown-panel-radius);
+    background:var(--surface);color:var(--text);box-shadow:var(--dropdown-shadow);font:inherit;
+    min-width:anchor-size(width);max-width:calc(100vw - 24px);max-height:min(360px,55dvh);
+    overflow:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:var(--border) transparent;
+  }
+  select.ui-select option{display:flex;align-items:center;gap:10px;min-height:var(--dropdown-height);padding:8px 10px;border:0;border-radius:var(--dropdown-radius);white-space:normal;overflow-wrap:anywhere;line-height:1.6}
+  select.ui-select option:not(:disabled):hover,select.ui-select option:focus{background:var(--surface-alt);outline:none}
+  select.ui-select option:checked{background:var(--accent-soft);color:var(--accent);font-weight:600}
+  select.ui-select option::checkmark{order:1;margin-inline-start:auto;color:var(--accent);font-size:13px;flex:none}
+  select.ui-select optgroup{padding:6px 5px;font-size:11px;color:var(--muted)}
+}
+
+:is(.ui-dropdown-panel,.apimgr-menu,.theme-popover,.library-create-action>details>button),
+.scalar-app :is([role="listbox"],[role="menu"]){
+  border-color:var(--border)!important;border-radius:var(--dropdown-panel-radius)!important;
+  background:var(--surface)!important;color:var(--text)!important;box-shadow:var(--dropdown-shadow)!important;
+}
+.ui-dropdown-panel,.apimgr-menu,.scalar-app :is([role="listbox"],[role="menu"]){padding:5px!important;max-width:calc(100vw - 24px);scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+:is(.ui-dropdown-option,.apimgr-menu>button,.library-create-action>details>button),
+.scalar-app :is([role="option"],[role="menuitem"]){min-height:var(--dropdown-height);border-radius:var(--dropdown-radius)!important;font-size:var(--dropdown-font-size)!important;line-height:1.6;padding:8px 10px;overflow-wrap:anywhere}
+:is(.ui-dropdown-option,.apimgr-menu>button):not(:disabled):hover,
+.scalar-app :is([role="option"],[role="menuitem"]):not([aria-disabled="true"]):hover{background:var(--surface-alt)!important}
+.ui-dropdown-option[aria-selected="true"],.scalar-app [role="option"][aria-selected="true"]{background:var(--accent-soft)!important;color:var(--accent)!important;font-weight:600}
+.scalar-app{--scalar-radius:var(--dropdown-radius);--scalar-radius-lg:var(--dropdown-panel-radius);--scalar-radius-xl:var(--dropdown-panel-radius)}
+@media(prefers-reduced-motion:reduce){select.ui-select::picker-icon{transition:none}}

@@ -1,0 +1,523 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "CSV 示例 · 多参数 POST JSON",
+    "version": "1.0.0",
+    "description": "配套流程：CSV 数据集 · 多参数 POST JSON 示例。仅演示数据组织，非真实业务契约；CSV 每行含 case_id 和一份完整 request_body。JSON 包含客户、门店、订单、工单、商品数组、附件与自定义字段。JMeter 运行时由 CSV 提供整个请求体，不自动调用本集合。"
+  },
+  "servers": [
+    {
+      "url": "http://example.invalid"
+    }
+  ],
+  "paths": {
+    "/demo/tickets": {
+      "post": {
+        "summary": "多参数 POST JSON · 工单创建演示",
+        "description": "与 CSV 示例第一条记录一致，可查看完整字段结构。执行真实接口前替换目标、路径和契约；本示例不发起业务请求。",
+        "operationId": "csvPostJsonTicketDemo",
+        "parameters": [
+          {
+            "name": "X-Test-Case",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "CSV-DEMO-0001"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "requestId": {
+                    "type": "string"
+                  },
+                  "requestTime": {
+                    "type": "string"
+                  },
+                  "tenantId": {
+                    "type": "string"
+                  },
+                  "sourceChannel": {
+                    "type": "string"
+                  },
+                  "language": {
+                    "type": "string"
+                  },
+                  "customer": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "mobile": {
+                        "type": "string"
+                      },
+                      "email": {
+                        "type": "string"
+                      },
+                      "memberLevel": {
+                        "type": "string"
+                      },
+                      "memberId": {
+                        "type": "string"
+                      },
+                      "labels": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  },
+                  "store": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "city": {
+                        "type": "string"
+                      },
+                      "region": {
+                        "type": "string"
+                      },
+                      "channel": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "order": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "channel": {
+                        "type": "string"
+                      },
+                      "paidAt": {
+                        "type": "string"
+                      },
+                      "totalAmount": {
+                        "type": "number"
+                      },
+                      "currency": {
+                        "type": "string"
+                      },
+                      "payment": {
+                        "type": "object",
+                        "properties": {
+                          "method": {
+                            "type": "string"
+                          },
+                          "transactionId": {
+                            "type": "string"
+                          },
+                          "paidAmount": {
+                            "type": "number"
+                          },
+                          "installments": {
+                            "type": "integer"
+                          }
+                        }
+                      },
+                      "delivery": {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "type": "string"
+                          },
+                          "trackingNo": {
+                            "type": "string"
+                          },
+                          "address": {
+                            "type": "object",
+                            "properties": {
+                              "province": {
+                                "type": "string"
+                              },
+                              "city": {
+                                "type": "string"
+                              },
+                              "district": {
+                                "type": "string"
+                              },
+                              "street": {
+                                "type": "string"
+                              },
+                              "postalCode": {
+                                "type": "string"
+                              },
+                              "contactName": {
+                                "type": "string"
+                              },
+                              "contactMobile": {
+                                "type": "string"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "ticket": {
+                    "type": "object",
+                    "properties": {
+                      "type": {
+                        "type": "string"
+                      },
+                      "category": {
+                        "type": "string"
+                      },
+                      "subCategory": {
+                        "type": "string"
+                      },
+                      "priority": {
+                        "type": "string"
+                      },
+                      "title": {
+                        "type": "string"
+                      },
+                      "description": {
+                        "type": "string"
+                      },
+                      "reasonCode": {
+                        "type": "string"
+                      },
+                      "contactPreference": {
+                        "type": "string"
+                      },
+                      "expectedReplyAt": {
+                        "type": "string"
+                      },
+                      "tags": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "assignedGroupId": {
+                        "type": "string"
+                      },
+                      "agentId": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      },
+                      "fields": {
+                        "type": "object",
+                        "properties": {
+                          "receiptNumber": {
+                            "type": "string"
+                          },
+                          "loyaltyPoints": {
+                            "type": "integer"
+                          },
+                          "refundAmount": {
+                            "type": "number"
+                          },
+                          "refundRequired": {
+                            "type": "boolean"
+                          },
+                          "hasInvoice": {
+                            "type": "boolean"
+                          },
+                          "invoiceTitle": {
+                            "type": "string"
+                          },
+                          "invoiceType": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "sku": {
+                          "type": "string"
+                        },
+                        "barcode": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "quantity": {
+                          "type": "integer"
+                        },
+                        "unitPrice": {
+                          "type": "number"
+                        },
+                        "unit": {
+                          "type": "string"
+                        },
+                        "refundQuantity": {
+                          "type": "integer"
+                        },
+                        "batchNo": {
+                          "type": "string"
+                        },
+                        "productionDate": {
+                          "type": "string"
+                        },
+                        "expiryDate": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  },
+                  "attachments": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string"
+                        },
+                        "url": {
+                          "type": "string"
+                        },
+                        "mediaType": {
+                          "type": "string"
+                        },
+                        "sizeBytes": {
+                          "type": "integer"
+                        }
+                      }
+                    }
+                  },
+                  "permissions": {
+                    "type": "object",
+                    "properties": {
+                      "allowSms": {
+                        "type": "boolean"
+                      },
+                      "allowEmail": {
+                        "type": "boolean"
+                      },
+                      "allowCallback": {
+                        "type": "boolean"
+                      },
+                      "marketingConsent": {
+                        "type": "boolean"
+                      }
+                    }
+                  },
+                  "customFields": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "key": {
+                          "type": "string"
+                        },
+                        "value": {
+                          "type": [
+                            "string",
+                            "number",
+                            "boolean"
+                          ]
+                        },
+                        "type": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  },
+                  "metadata": {
+                    "type": "object",
+                    "properties": {
+                      "testBatch": {
+                        "type": "string"
+                      },
+                      "dataVersion": {
+                        "type": "integer"
+                      },
+                      "caseId": {
+                        "type": "string"
+                      },
+                      "workerShard": {
+                        "type": "string"
+                      },
+                      "scenario": {
+                        "type": "string"
+                      },
+                      "nullableValue": {
+                        "type": "null"
+                      },
+                      "attributes": {
+                        "type": "object",
+                        "properties": {
+                          "campaignId": {
+                            "type": "string"
+                          },
+                          "clientVersion": {
+                            "type": "string"
+                          },
+                          "deviceId": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "example": {
+                "requestId": "DEMO-REQUEST-0001",
+                "requestTime": "2026-11-06T10:01:00+08:00",
+                "tenantId": "DEMO-TENANT",
+                "sourceChannel": "APP",
+                "language": "zh-CN",
+                "customer": {
+                  "id": "DEMO-CUSTOMER-0001",
+                  "name": "模拟用户01",
+                  "mobile": "00000000001",
+                  "email": "customer0001@example.invalid",
+                  "memberLevel": "NORMAL",
+                  "memberId": "DEMO-MEMBER-0001",
+                  "labels": [
+                    "压测样例",
+                    "普通咨询"
+                  ]
+                },
+                "store": {
+                  "id": "DEMO-STORE-001",
+                  "name": "示例门店1",
+                  "city": "深圳",
+                  "region": "演示区域",
+                  "channel": "ONLINE"
+                },
+                "order": {
+                  "id": "DEMO-ORDER-0001",
+                  "channel": "APP",
+                  "paidAt": "2026-11-06T09:00:00+08:00",
+                  "totalAmount": 12.5,
+                  "currency": "CNY",
+                  "payment": {
+                    "method": "WECHAT",
+                    "transactionId": "DEMO-PAYMENT-0001",
+                    "paidAmount": 12.5,
+                    "installments": 0
+                  },
+                  "delivery": {
+                    "type": "HOME_DELIVERY",
+                    "trackingNo": "DEMO-TRACK-0001",
+                    "address": {
+                      "province": "广东省",
+                      "city": "深圳市",
+                      "district": "示例区",
+                      "street": "示例路1号，演示地址",
+                      "postalCode": "000000",
+                      "contactName": "模拟收件人01",
+                      "contactMobile": "00000000001"
+                    }
+                  }
+                },
+                "ticket": {
+                  "type": "CUSTOMER_SERVICE",
+                  "category": "普通咨询",
+                  "subCategory": "DEMO-CATEGORY-1",
+                  "priority": "LOW",
+                  "title": "CSV多参数JSON演示-CSV-DEMO-0001",
+                  "description": "普通咨询，样例编号 CSV-DEMO-0001。",
+                  "reasonCode": "DEMO-REASON-1",
+                  "contactPreference": "SMS",
+                  "expectedReplyAt": "2026-11-07T18:00:00+08:00",
+                  "tags": [
+                    "CSV示例",
+                    "普通咨询"
+                  ],
+                  "assignedGroupId": "DEMO-GROUP-1",
+                  "agentId": "DEMO-AGENT-1",
+                  "fields": {
+                    "receiptNumber": "DEMO-RECEIPT-0001",
+                    "loyaltyPoints": 101,
+                    "refundAmount": 0,
+                    "refundRequired": false,
+                    "hasInvoice": true,
+                    "invoiceTitle": "示例公司",
+                    "invoiceType": "NORMAL"
+                  }
+                },
+                "items": [
+                  {
+                    "sku": "DEMO-SKU-0001-1",
+                    "barcode": "DEMO-BARCODE-0001-1",
+                    "name": "示例牛奶",
+                    "quantity": 1,
+                    "unitPrice": 12.5,
+                    "unit": "件",
+                    "refundQuantity": 0,
+                    "batchNo": "BATCH-1-1",
+                    "productionDate": "2026-11-01",
+                    "expiryDate": "2026-11-30"
+                  }
+                ],
+                "attachments": [],
+                "permissions": {
+                  "allowSms": true,
+                  "allowEmail": true,
+                  "allowCallback": true,
+                  "marketingConsent": false
+                },
+                "customFields": [
+                  {
+                    "key": "demo_source",
+                    "value": "CSV_DATASET",
+                    "type": "string"
+                  },
+                  {
+                    "key": "demo_amount",
+                    "value": 12.5,
+                    "type": "number"
+                  },
+                  {
+                    "key": "demo_flag",
+                    "value": true,
+                    "type": "boolean"
+                  }
+                ],
+                "metadata": {
+                  "testBatch": "csv-post-json-v1",
+                  "dataVersion": 1,
+                  "caseId": "CSV-DEMO-0001",
+                  "workerShard": "worker-1",
+                  "scenario": "普通咨询",
+                  "nullableValue": null,
+                  "attributes": {
+                    "campaignId": "DEMO-CAMPAIGN",
+                    "clientVersion": "1.0.0",
+                    "deviceId": "DEMO-DEVICE-0001"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "演示成功响应"
+          }
+        }
+      }
+    }
+  }
+}

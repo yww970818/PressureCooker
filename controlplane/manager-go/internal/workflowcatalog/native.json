@@ -1,0 +1,1172 @@
+[
+  {
+    "component": "AccessLogSampler",
+    "class_name": "org.apache.jmeter.protocol.http.sampler.AccessLogSampler",
+    "title": "AccessLogSampler",
+    "kind": "sampler",
+    "gui": "TestBeanGUI",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<elementProp name=\"HTTPsampler.Arguments\" elementType=\"Arguments\">\n    <collectionProp name=\"Arguments.arguments\" />\n  </elementProp>\n  <stringProp name=\"domain\" />\n  <boolProp name=\"imageParsing\">false</boolProp>\n  <stringProp name=\"logFile\" />\n  <stringProp name=\"parserClassName\">org.apache.jmeter.protocol.http.util.accesslog.TCLogParser</stringProp>\n  <stringProp name=\"portString\" />\n"
+  },
+  {
+    "component": "AjpSampler",
+    "class_name": "org.apache.jmeter.protocol.http.sampler.AjpSampler",
+    "title": "AjpSampler",
+    "kind": "sampler",
+    "gui": "AjpSamplerGui",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<stringProp name=\"HTTPSampler.method\">GET</stringProp>\n  <boolProp name=\"HTTPSampler.postBodyRaw\">false</boolProp>\n  <elementProp name=\"HTTPsampler.Arguments\" elementType=\"Arguments\" guiclass=\"HTTPArgumentsPanel\" testclass=\"Arguments\" testname=\"User Defined Variables\">\n    <collectionProp name=\"Arguments.arguments\" />\n  </elementProp>\n"
+  },
+  {
+    "component": "AnchorModifier",
+    "class_name": "org.apache.jmeter.protocol.http.modifier.AnchorModifier",
+    "title": "AnchorModifier",
+    "kind": "preprocessor",
+    "gui": "AnchorModifierGui",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": ""
+  },
+  {
+    "component": "Arguments",
+    "class_name": "org.apache.jmeter.config.Arguments",
+    "title": "用户变量",
+    "kind": "config",
+    "gui": "ArgumentsPanel",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<collectionProp name=\"Arguments.arguments\" />\n"
+  },
+  {
+    "component": "AuthManager",
+    "class_name": "org.apache.jmeter.protocol.http.control.AuthManager",
+    "title": "AuthManager",
+    "kind": "config",
+    "gui": "TestBeanGUI",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<collectionProp name=\"AuthManager.auth_list\" />\n"
+  },
+  {
+    "component": "BSFAssertion",
+    "class_name": "org.apache.jmeter.assertions.BSFAssertion",
+    "title": "BSFAssertion",
+    "kind": "assertion",
+    "gui": "TestBeanGUI",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<stringProp name=\"filename\" />\n  <stringProp name=\"parameters\" />\n  <stringProp name=\"script\" />\n  <stringProp name=\"scriptLanguage\" />\n"
+  },
+  {
+    "component": "BSFListener",
+    "class_name": "org.apache.jmeter.visualizers.BSFListener",
+    "title": "BSFListener",
+    "kind": "listener",
+    "gui": "TestBeanGUI",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<stringProp name=\"filename\" />\n  <stringProp name=\"parameters\" />\n  <stringProp name=\"script\" />\n  <stringProp name=\"scriptLanguage\" />\n"
+  },
+  {
+    "component": "BSFPostProcessor",
+    "class_name": "org.apache.jmeter.extractor.BSFPostProcessor",
+    "title": "BSFPostProcessor",
+    "kind": "postprocessor",
+    "gui": "TestBeanGUI",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<stringProp name=\"filename\" />\n  <stringProp name=\"parameters\" />\n  <stringProp name=\"script\" />\n  <stringProp name=\"scriptLanguage\" />\n"
+  },
+  {
+    "component": "BSFPreProcessor",
+    "class_name": "org.apache.jmeter.modifiers.BSFPreProcessor",
+    "title": "BSFPreProcessor",
+    "kind": "preprocessor",
+    "gui": "TestBeanGUI",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<stringProp name=\"filename\" />\n  <stringProp name=\"parameters\" />\n  <stringProp name=\"script\" />\n  <stringProp name=\"scriptLanguage\" />\n"
+  },
+  {
+    "component": "BSFSampler",
+    "class_name": "org.apache.jmeter.protocol.java.sampler.BSFSampler",
+    "title": "BSFSampler",
+    "kind": "sampler",
+    "gui": "TestBeanGUI",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<stringProp name=\"filename\" />\n  <stringProp name=\"parameters\" />\n  <stringProp name=\"script\" />\n  <stringProp name=\"scriptLanguage\" />\n"
+  },
+  {
+    "component": "BSFTimer",
+    "class_name": "org.apache.jmeter.timers.BSFTimer",
+    "title": "BSFTimer",
+    "kind": "timer",
+    "gui": "TestBeanGUI",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<stringProp name=\"filename\" />\n  <stringProp name=\"parameters\" />\n  <stringProp name=\"script\" />\n  <stringProp name=\"scriptLanguage\" />\n"
+  },
+  {
+    "component": "BackendListener",
+    "class_name": "org.apache.jmeter.visualizers.backend.BackendListener",
+    "title": "BackendListener",
+    "kind": "listener",
+    "gui": "BackendListenerGui",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<elementProp name=\"arguments\" elementType=\"Arguments\" guiclass=\"ArgumentsPanel\" testclass=\"Arguments\">\n    <collectionProp name=\"Arguments.arguments\">\n      <elementProp name=\"graphiteMetricsSender\" elementType=\"Argument\">\n        <stringProp name=\"Argument.name\">graphiteMetricsSender</stringProp>\n        <stringProp name=\"Argument.value\">org.apache.jmeter.visualizers.backend.graphite.TextGraphiteMetricsSender</stringProp>\n        <stringProp name=\"Argument.metadata\">=</stringProp>\n      </elementProp>\n      <elementProp name=\"graphiteHost\" elementType=\"Argument\">\n        <stringProp name=\"Argument.name\">graphiteHost</stringProp>\n        <stringProp name=\"Argument.value\" />\n        <stringProp name=\"Argument.metadata\">=</stringProp>\n      </elementProp>\n      <elementProp name=\"graphitePort\" elementType=\"Argument\">\n        <stringProp name=\"Argument.name\">graphitePort</stringProp>\n        <stringProp name=\"Argument.value\">2003</stringProp>\n        <stringProp name=\"Argument.metadata\">=</stringProp>\n      </elementProp>\n      <elementProp name=\"rootMetricsPrefix\" elementType=\"Argument\">\n        <stringProp name=\"Argument.name\">rootMetricsPrefix</stringProp>\n        <stringProp name=\"Argument.value\">jmeter.</stringProp>\n        <stringProp name=\"Argument.metadata\">=</stringProp>\n      </elementProp>\n      <elementProp name=\"summaryOnly\" elementType=\"Argument\">\n        <stringProp name=\"Argument.name\">summaryOnly</stringProp>\n        <stringProp name=\"Argument.value\">true</stringProp>\n        <stringProp name=\"Argument.metadata\">=</stringProp>\n      </elementProp>\n      <elementProp name=\"samplersList\" elementType=\"Argument\">\n        <stringProp name=\"Argument.name\">samplersList</stringProp>\n        <stringProp name=\"Argument.value\" />\n        <stringProp name=\"Argument.metadata\">=</stringProp>\n      </elementProp>\n      <elementProp name=\"percentiles\" elementType=\"Argument\">\n        <stringProp name=\"Argument.name\">percentiles</stringProp>\n        <stringProp name=\"Argument.value\">90;95;99</stringProp>\n        <stringProp name=\"Argument.metadata\">=</stringProp>\n      </elementProp>\n    </collectionProp>\n  </elementProp>\n  <stringProp name=\"classname\">org.apache.jmeter.visualizers.backend.graphite.GraphiteBackendListenerClient</stringProp>\n"
+  },
+  {
+    "component": "BeanShellAssertion",
+    "class_name": "org.apache.jmeter.assertions.BeanShellAssertion",
+    "title": "BeanShellAssertion",
+    "kind": "assertion",
+    "gui": "BeanShellAssertionGui",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<stringProp name=\"BeanShellAssertion.query\" />\n  <stringProp name=\"BeanShellAssertion.filename\" />\n  <stringProp name=\"BeanShellAssertion.parameters\" />\n  <boolProp name=\"BeanShellAssertion.resetInterpreter\">false</boolProp>\n"
+  },
+  {
+    "component": "BeanShellListener",
+    "class_name": "org.apache.jmeter.visualizers.BeanShellListener",
+    "title": "BeanShellListener",
+    "kind": "listener",
+    "gui": "TestBeanGUI",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<stringProp name=\"filename\" />\n  <stringProp name=\"parameters\" />\n  <boolProp name=\"resetInterpreter\">false</boolProp>\n  <stringProp name=\"script\" />\n"
+  },
+  {
+    "component": "BeanShellPostProcessor",
+    "class_name": "org.apache.jmeter.extractor.BeanShellPostProcessor",
+    "title": "BeanShellPostProcessor",
+    "kind": "postprocessor",
+    "gui": "TestBeanGUI",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<stringProp name=\"filename\" />\n  <stringProp name=\"parameters\" />\n  <boolProp name=\"resetInterpreter\">false</boolProp>\n  <stringProp name=\"script\" />\n"
+  },
+  {
+    "component": "BeanShellPreProcessor",
+    "class_name": "org.apache.jmeter.modifiers.BeanShellPreProcessor",
+    "title": "BeanShellPreProcessor",
+    "kind": "preprocessor",
+    "gui": "TestBeanGUI",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<stringProp name=\"filename\" />\n  <stringProp name=\"parameters\" />\n  <boolProp name=\"resetInterpreter\">false</boolProp>\n  <stringProp name=\"script\" />\n"
+  },
+  {
+    "component": "BeanShellSampler",
+    "class_name": "org.apache.jmeter.protocol.java.sampler.BeanShellSampler",
+    "title": "BeanShellSampler",
+    "kind": "sampler",
+    "gui": "BeanShellSamplerGui",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": ""
+  },
+  {
+    "component": "BeanShellTimer",
+    "class_name": "org.apache.jmeter.timers.BeanShellTimer",
+    "title": "BeanShellTimer",
+    "kind": "timer",
+    "gui": "TestBeanGUI",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<stringProp name=\"filename\" />\n  <stringProp name=\"parameters\" />\n  <boolProp name=\"resetInterpreter\">false</boolProp>\n  <stringProp name=\"script\" />\n"
+  },
+  {
+    "component": "BoltConnectionElement",
+    "class_name": "org.apache.jmeter.protocol.bolt.config.BoltConnectionElement",
+    "title": "BoltConnectionElement",
+    "kind": "config",
+    "gui": "TestBeanGUI",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<stringProp name=\"boltUri\">bolt://localhost:7687</stringProp>\n  <intProp name=\"maxConnectionPoolSize\">100</intProp>\n  <stringProp name=\"password\" />\n  <stringProp name=\"username\">neo4j</stringProp>\n"
+  },
+  {
+    "component": "BoltSampler",
+    "class_name": "org.apache.jmeter.protocol.bolt.sampler.BoltSampler",
+    "title": "BoltSampler",
+    "kind": "sampler",
+    "gui": "TestBeanGUI",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<stringProp name=\"accessMode\">WRITE</stringProp>\n  <stringProp name=\"cypher\" />\n  <stringProp name=\"params\">{\"paramName\":\"paramValue\"}</stringProp>\n  <boolProp name=\"recordQueryResults\">false</boolProp>\n  <intProp name=\"txTimeout\">60</intProp>\n"
+  },
+  {
+    "component": "BoundaryExtractor",
+    "class_name": "org.apache.jmeter.extractor.BoundaryExtractor",
+    "title": "BoundaryExtractor",
+    "kind": "postprocessor",
+    "gui": "BoundaryExtractorGui",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<stringProp name=\"BoundaryExtractor.useHeaders\">false</stringProp>\n  <stringProp name=\"BoundaryExtractor.refname\" />\n  <stringProp name=\"BoundaryExtractor.lboundary\" />\n  <stringProp name=\"BoundaryExtractor.rboundary\" />\n  <stringProp name=\"BoundaryExtractor.default\" />\n  <boolProp name=\"BoundaryExtractor.default_empty_value\">false</boolProp>\n  <stringProp name=\"BoundaryExtractor.match_number\" />\n"
+  },
+  {
+    "component": "CSVDataSet",
+    "class_name": "org.apache.jmeter.config.CSVDataSet",
+    "title": "CSVDataSet",
+    "kind": "config",
+    "gui": "TestBeanGUI",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<stringProp name=\"delimiter\">,</stringProp>\n  <stringProp name=\"fileEncoding\" />\n  <stringProp name=\"filename\" />\n  <boolProp name=\"ignoreFirstLine\">false</boolProp>\n  <boolProp name=\"quotedData\">false</boolProp>\n  <boolProp name=\"recycle\">true</boolProp>\n  <stringProp name=\"shareMode\">shareMode.all</stringProp>\n  <boolProp name=\"stopThread\">false</boolProp>\n  <stringProp name=\"variableNames\" />\n"
+  },
+  {
+    "component": "CacheManager",
+    "class_name": "org.apache.jmeter.protocol.http.control.CacheManager",
+    "title": "HTTP 缓存管理器",
+    "kind": "config",
+    "gui": "CacheManagerGui",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<boolProp name=\"clearEachIteration\">false</boolProp>\n  <boolProp name=\"useExpires\">true</boolProp>\n  <boolProp name=\"CacheManager.controlledByThread\">false</boolProp>\n"
+  },
+  {
+    "component": "CompareAssertion",
+    "class_name": "org.apache.jmeter.assertions.CompareAssertion",
+    "title": "CompareAssertion",
+    "kind": "assertion",
+    "gui": "TestBeanGUI",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<boolProp name=\"compareContent\">true</boolProp>\n  <longProp name=\"compareTime\">-1</longProp>\n  <collectionProp name=\"stringsToSkip\" />\n"
+  },
+  {
+    "component": "ConfigTestElement",
+    "class_name": "org.apache.jmeter.config.ConfigTestElement",
+    "title": "ConfigTestElement",
+    "kind": "config",
+    "gui": "TestBeanGUI",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": ""
+  },
+  {
+    "component": "ConstantThroughputTimer",
+    "class_name": "org.apache.jmeter.timers.ConstantThroughputTimer",
+    "title": "固定吞吐量定时器",
+    "kind": "timer",
+    "gui": "TestBeanGUI",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<intProp name=\"calcMode\">0</intProp>\n  <doubleProp>\n    <name>throughput</name>\n    <value>0.0</value>\n    <savedValue>0.0</savedValue>\n  </doubleProp>\n"
+  },
+  {
+    "component": "ConstantTimer",
+    "class_name": "org.apache.jmeter.timers.ConstantTimer",
+    "title": "ConstantTimer",
+    "kind": "timer",
+    "gui": "ConstantTimerGui",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<stringProp name=\"ConstantTimer.delay\">300</stringProp>\n"
+  },
+  {
+    "component": "CookieManager",
+    "class_name": "org.apache.jmeter.protocol.http.control.CookieManager",
+    "title": "HTTP Cookie 管理器",
+    "kind": "config",
+    "gui": "TestBeanGUI",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<collectionProp name=\"CookieManager.cookies\" />\n"
+  },
+  {
+    "component": "CriticalSectionController",
+    "class_name": "org.apache.jmeter.control.CriticalSectionController",
+    "title": "CriticalSectionController",
+    "kind": "controller",
+    "gui": "CriticalSectionControllerGui",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<stringProp name=\"CriticalSectionController.lockName\">global_lock</stringProp>\n"
+  },
+  {
+    "component": "DNSCacheManager",
+    "class_name": "org.apache.jmeter.protocol.http.control.DNSCacheManager",
+    "title": "DNSCacheManager",
+    "kind": "config",
+    "gui": "TestBeanGUI",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<collectionProp name=\"DNSCacheManager.servers\" />\n"
+  },
+  {
+    "component": "DebugPostProcessor",
+    "class_name": "org.apache.jmeter.extractor.DebugPostProcessor",
+    "title": "DebugPostProcessor",
+    "kind": "postprocessor",
+    "gui": "TestBeanGUI",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<boolProp name=\"displayJMeterProperties\">false</boolProp>\n  <boolProp name=\"displayJMeterVariables\">true</boolProp>\n  <boolProp name=\"displaySamplerProperties\">true</boolProp>\n  <boolProp name=\"displaySystemProperties\">false</boolProp>\n"
+  },
+  {
+    "component": "DebugSampler",
+    "class_name": "org.apache.jmeter.sampler.DebugSampler",
+    "title": "DebugSampler",
+    "kind": "sampler",
+    "gui": "TestBeanGUI",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<boolProp name=\"displayJMeterProperties\">false</boolProp>\n  <boolProp name=\"displayJMeterVariables\">true</boolProp>\n  <boolProp name=\"displaySystemProperties\">false</boolProp>\n"
+  },
+  {
+    "component": "DurationAssertion",
+    "class_name": "org.apache.jmeter.assertions.DurationAssertion",
+    "title": "持续时间断言",
+    "kind": "assertion",
+    "gui": "DurationAssertionGui",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<stringProp name=\"DurationAssertion.duration\" />\n"
+  },
+  {
+    "component": "FTPSampler",
+    "class_name": "org.apache.jmeter.protocol.ftp.sampler.FTPSampler",
+    "title": "FTPSampler",
+    "kind": "sampler",
+    "gui": "TestBeanGUI",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": ""
+  },
+  {
+    "component": "ForeachController",
+    "class_name": "org.apache.jmeter.control.ForeachController",
+    "title": "ForeachController",
+    "kind": "controller",
+    "gui": "TestBeanGUI",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": ""
+  },
+  {
+    "component": "GaussianRandomTimer",
+    "class_name": "org.apache.jmeter.timers.GaussianRandomTimer",
+    "title": "GaussianRandomTimer",
+    "kind": "timer",
+    "gui": "GaussianRandomTimerGui",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<stringProp name=\"ConstantTimer.delay\">300</stringProp>\n  <stringProp name=\"RandomTimer.range\">100.0</stringProp>\n"
+  },
+  {
+    "component": "GenericController",
+    "class_name": "org.apache.jmeter.control.GenericController",
+    "title": "简单控制器",
+    "kind": "controller",
+    "gui": "TestBeanGUI",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": ""
+  },
+  {
+    "component": "HTMLAssertion",
+    "class_name": "org.apache.jmeter.assertions.HTMLAssertion",
+    "title": "HTMLAssertion",
+    "kind": "assertion",
+    "gui": "HTMLAssertionGui",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<longProp name=\"html_assertion_error_threshold\">0</longProp>\n  <longProp name=\"html_assertion_warning_threshold\">0</longProp>\n  <stringProp name=\"html_assertion_doctype\">omit</stringProp>\n  <boolProp name=\"html_assertion_errorsonly\">false</boolProp>\n  <longProp name=\"html_assertion_format\">0</longProp>\n  <stringProp name=\"html_assertion_filename\" />\n"
+  },
+  {
+    "component": "HTTPSamplerProxy",
+    "class_name": "org.apache.jmeter.protocol.http.sampler.HTTPSamplerProxy",
+    "title": "HTTPSamplerProxy",
+    "kind": "sampler",
+    "gui": "TestBeanGUI",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<elementProp name=\"HTTPsampler.Arguments\" elementType=\"Arguments\">\n    <collectionProp name=\"Arguments.arguments\" />\n  </elementProp>\n"
+  },
+  {
+    "component": "HeaderManager",
+    "class_name": "org.apache.jmeter.protocol.http.control.HeaderManager",
+    "title": "HeaderManager",
+    "kind": "config",
+    "gui": "TestBeanGUI",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<collectionProp name=\"HeaderManager.headers\" />\n"
+  },
+  {
+    "component": "HtmlExtractor",
+    "class_name": "org.apache.jmeter.extractor.HtmlExtractor",
+    "title": "HtmlExtractor",
+    "kind": "postprocessor",
+    "gui": "HtmlExtractorGui",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<stringProp name=\"HtmlExtractor.refname\" />\n  <stringProp name=\"HtmlExtractor.expr\" />\n  <stringProp name=\"HtmlExtractor.attribute\" />\n  <stringProp name=\"HtmlExtractor.default\" />\n  <boolProp name=\"HtmlExtractor.default_empty_value\">false</boolProp>\n  <stringProp name=\"HtmlExtractor.match_number\" />\n  <stringProp name=\"HtmlExtractor.extractor_impl\" />\n"
+  },
+  {
+    "component": "IfController",
+    "class_name": "org.apache.jmeter.control.IfController",
+    "title": "IfController",
+    "kind": "controller",
+    "gui": "TestBeanGUI",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": ""
+  },
+  {
+    "component": "IncludeController",
+    "class_name": "org.apache.jmeter.control.IncludeController",
+    "title": "IncludeController",
+    "kind": "controller",
+    "gui": "IncludeControllerGui",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": ""
+  },
+  {
+    "component": "InterleaveControl",
+    "class_name": "org.apache.jmeter.control.InterleaveControl",
+    "title": "InterleaveControl",
+    "kind": "controller",
+    "gui": "InterleaveControlGui",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<intProp name=\"InterleaveControl.style\">1</intProp>\n  <boolProp name=\"InterleaveControl.accrossThreads\">false</boolProp>\n"
+  },
+  {
+    "component": "JDBCDataSource",
+    "class_name": "org.apache.jmeter.protocol.jdbc.config.DataSourceElement",
+    "title": "JDBCDataSource",
+    "kind": "config",
+    "gui": "TestBeanGUI",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<boolProp name=\"autocommit\">true</boolProp>\n  <stringProp name=\"checkQuery\" />\n  <stringProp name=\"connectionAge\">5000</stringProp>\n  <stringProp name=\"connectionProperties\" />\n  <stringProp name=\"dataSource\" />\n  <stringProp name=\"dbUrl\" />\n  <stringProp name=\"driver\" />\n  <stringProp name=\"initQuery\" />\n  <boolProp name=\"keepAlive\">true</boolProp>\n  <stringProp name=\"password\" />\n  <stringProp name=\"poolMax\">0</stringProp>\n  <boolProp name=\"preinit\">false</boolProp>\n  <stringProp name=\"timeout\">10000</stringProp>\n  <stringProp name=\"transactionIsolation\">DEFAULT</stringProp>\n  <stringProp name=\"trimInterval\">60000</stringProp>\n  <stringProp name=\"username\" />\n"
+  },
+  {
+    "component": "JDBCPostProcessor",
+    "class_name": "org.apache.jmeter.protocol.jdbc.processor.JDBCPostProcessor",
+    "title": "JDBCPostProcessor",
+    "kind": "postprocessor",
+    "gui": "TestBeanGUI",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<stringProp name=\"dataSource\" />\n  <stringProp name=\"query\" />\n  <stringProp name=\"queryArguments\" />\n  <stringProp name=\"queryArgumentsTypes\" />\n  <stringProp name=\"queryTimeout\" />\n  <stringProp name=\"queryType\">Select Statement</stringProp>\n  <stringProp name=\"resultSetHandler\">Store as String</stringProp>\n  <stringProp name=\"resultSetMaxRows\" />\n  <stringProp name=\"resultVariable\" />\n  <stringProp name=\"variableNames\" />\n"
+  },
+  {
+    "component": "JDBCPreProcessor",
+    "class_name": "org.apache.jmeter.protocol.jdbc.processor.JDBCPreProcessor",
+    "title": "JDBCPreProcessor",
+    "kind": "preprocessor",
+    "gui": "TestBeanGUI",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<stringProp name=\"dataSource\" />\n  <stringProp name=\"query\" />\n  <stringProp name=\"queryArguments\" />\n  <stringProp name=\"queryArgumentsTypes\" />\n  <stringProp name=\"queryTimeout\" />\n  <stringProp name=\"queryType\">Select Statement</stringProp>\n  <stringProp name=\"resultSetHandler\">Store as String</stringProp>\n  <stringProp name=\"resultSetMaxRows\" />\n  <stringProp name=\"resultVariable\" />\n  <stringProp name=\"variableNames\" />\n"
+  },
+  {
+    "component": "JDBCSampler",
+    "class_name": "org.apache.jmeter.protocol.jdbc.sampler.JDBCSampler",
+    "title": "JDBCSampler",
+    "kind": "sampler",
+    "gui": "TestBeanGUI",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<stringProp name=\"dataSource\" />\n  <stringProp name=\"query\" />\n  <stringProp name=\"queryArguments\" />\n  <stringProp name=\"queryArgumentsTypes\" />\n  <stringProp name=\"queryTimeout\" />\n  <stringProp name=\"queryType\">Select Statement</stringProp>\n  <stringProp name=\"resultSetHandler\">Store as String</stringProp>\n  <stringProp name=\"resultSetMaxRows\" />\n  <stringProp name=\"resultVariable\" />\n  <stringProp name=\"variableNames\" />\n"
+  },
+  {
+    "component": "JMESPathAssertion",
+    "class_name": "org.apache.jmeter.assertions.jmespath.JMESPathAssertion",
+    "title": "JMESPathAssertion",
+    "kind": "assertion",
+    "gui": "JMESPathAssertionGui",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<stringProp name=\"JMES_PATH\" />\n  <stringProp name=\"EXPECTED_VALUE\" />\n  <boolProp name=\"JSONVALIDATION\">false</boolProp>\n  <boolProp name=\"EXPECT_NULL\">false</boolProp>\n  <boolProp name=\"INVERT\">false</boolProp>\n  <boolProp name=\"ISREGEX\">true</boolProp>\n"
+  },
+  {
+    "component": "JMESPathExtractor",
+    "class_name": "org.apache.jmeter.extractor.json.jmespath.JMESPathExtractor",
+    "title": "JMESPathExtractor",
+    "kind": "postprocessor",
+    "gui": "JMESPathExtractorGui",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<stringProp name=\"JMESExtractor.referenceName\" />\n  <stringProp name=\"JMESExtractor.jmesPathExpr\" />\n  <stringProp name=\"JMESExtractor.matchNumber\" />\n"
+  },
+  {
+    "component": "JMSSampler",
+    "class_name": "org.apache.jmeter.protocol.jms.sampler.JMSSampler",
+    "title": "JMSSampler",
+    "kind": "sampler",
+    "gui": "JMSSamplerGui",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<stringProp name=\"JMSSampler.queueconnectionfactory\" />\n  <stringProp name=\"JMSSampler.SendQueue\" />\n  <stringProp name=\"JMSSampler.ReceiveQueue\" />\n  <intProp name=\"JMSSampler.communicationStyle\">0</intProp>\n  <boolProp name=\"JMSSampler.isNonPersistent\">false</boolProp>\n  <boolProp name=\"JMSSampler.useReqMsgIdAsCorrelId\">false</boolProp>\n  <stringProp name=\"JMSSampler.timeout\" />\n  <stringProp name=\"JMSSampler.expiration\" />\n  <stringProp name=\"JMSSampler.priority\" />\n  <stringProp name=\"JMSSampler.jmsNumberOfSamplesToAggregate\" />\n  <stringProp name=\"HTTPSamper.xml_data\" />\n  <stringProp name=\"JMSSampler.initialContextFactory\" />\n  <stringProp name=\"JMSSampler.contextProviderUrl\" />\n  <elementProp name=\"JMSSampler.jndiProperties\" elementType=\"Arguments\" guiclass=\"ArgumentsPanel\" testclass=\"Arguments\" testname=\"User Defined Variables\">\n    <collectionProp name=\"Arguments.arguments\" />\n  </elementProp>\n  <elementProp name=\"arguments\" elementType=\"JMSProperties\">\n    <collectionProp name=\"JMSProperties.properties\" />\n  </elementProp>\n"
+  },
+  {
+    "component": "JSONPathAssertion",
+    "class_name": "org.apache.jmeter.assertions.JSONPathAssertion",
+    "title": "JSONPathAssertion",
+    "kind": "assertion",
+    "gui": "JSONPathAssertionGui",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<stringProp name=\"JSON_PATH\" />\n  <stringProp name=\"EXPECTED_VALUE\" />\n  <boolProp name=\"JSONVALIDATION\">false</boolProp>\n  <boolProp name=\"EXPECT_NULL\">false</boolProp>\n  <boolProp name=\"INVERT\">false</boolProp>\n  <boolProp name=\"ISREGEX\">true</boolProp>\n"
+  },
+  {
+    "component": "JSONPostProcessor",
+    "class_name": "org.apache.jmeter.extractor.json.jsonpath.JSONPostProcessor",
+    "title": "JSONPostProcessor",
+    "kind": "postprocessor",
+    "gui": "JSONPostProcessorGui",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<stringProp name=\"JSONPostProcessor.referenceNames\" />\n  <stringProp name=\"JSONPostProcessor.jsonPathExprs\" />\n  <stringProp name=\"JSONPostProcessor.match_numbers\" />\n"
+  },
+  {
+    "component": "JSR223Assertion",
+    "class_name": "org.apache.jmeter.assertions.JSR223Assertion",
+    "title": "JSR223 脚本断言",
+    "kind": "assertion",
+    "gui": "TestBeanGUI",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<stringProp name=\"cacheKey\">true</stringProp>\n  <stringProp name=\"filename\" />\n  <stringProp name=\"parameters\" />\n  <stringProp name=\"script\" />\n  <stringProp name=\"scriptLanguage\">groovy</stringProp>\n"
+  },
+  {
+    "component": "JSR223Listener",
+    "class_name": "org.apache.jmeter.visualizers.JSR223Listener",
+    "title": "JSR223 监听器",
+    "kind": "listener",
+    "gui": "TestBeanGUI",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<stringProp name=\"cacheKey\">true</stringProp>\n  <stringProp name=\"filename\" />\n  <stringProp name=\"parameters\" />\n  <stringProp name=\"script\" />\n  <stringProp name=\"scriptLanguage\">groovy</stringProp>\n"
+  },
+  {
+    "component": "JSR223PostProcessor",
+    "class_name": "org.apache.jmeter.extractor.JSR223PostProcessor",
+    "title": "JSR223 后置处理器",
+    "kind": "postprocessor",
+    "gui": "TestBeanGUI",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<stringProp name=\"cacheKey\">true</stringProp>\n  <stringProp name=\"filename\" />\n  <stringProp name=\"parameters\" />\n  <stringProp name=\"script\" />\n  <stringProp name=\"scriptLanguage\">groovy</stringProp>\n"
+  },
+  {
+    "component": "JSR223PreProcessor",
+    "class_name": "org.apache.jmeter.modifiers.JSR223PreProcessor",
+    "title": "JSR223 前置处理器",
+    "kind": "preprocessor",
+    "gui": "TestBeanGUI",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<stringProp name=\"cacheKey\">true</stringProp>\n  <stringProp name=\"filename\" />\n  <stringProp name=\"parameters\" />\n  <stringProp name=\"script\" />\n  <stringProp name=\"scriptLanguage\">groovy</stringProp>\n"
+  },
+  {
+    "component": "JSR223Sampler",
+    "class_name": "org.apache.jmeter.protocol.java.sampler.JSR223Sampler",
+    "title": "JSR223 脚本采样器",
+    "kind": "sampler",
+    "gui": "TestBeanGUI",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<stringProp name=\"cacheKey\">true</stringProp>\n  <stringProp name=\"filename\" />\n  <stringProp name=\"parameters\" />\n  <stringProp name=\"script\" />\n  <stringProp name=\"scriptLanguage\">groovy</stringProp>\n"
+  },
+  {
+    "component": "JSR223Timer",
+    "class_name": "org.apache.jmeter.timers.JSR223Timer",
+    "title": "JSR223 定时器",
+    "kind": "timer",
+    "gui": "TestBeanGUI",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<stringProp name=\"cacheKey\">true</stringProp>\n  <stringProp name=\"filename\" />\n  <stringProp name=\"parameters\" />\n  <stringProp name=\"script\" />\n  <stringProp name=\"scriptLanguage\">groovy</stringProp>\n"
+  },
+  {
+    "component": "JUnitSampler",
+    "class_name": "org.apache.jmeter.protocol.java.sampler.JUnitSampler",
+    "title": "JUnitSampler",
+    "kind": "sampler",
+    "gui": "TestBeanGUI",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": ""
+  },
+  {
+    "component": "JavaConfig",
+    "class_name": "org.apache.jmeter.protocol.java.config.JavaConfig",
+    "title": "JavaConfig",
+    "kind": "config",
+    "gui": "JavaConfigGui",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<elementProp name=\"arguments\" elementType=\"Arguments\" guiclass=\"ArgumentsPanel\" testclass=\"Arguments\" testname=\"User Defined Variables\">\n    <collectionProp name=\"Arguments.arguments\" />\n  </elementProp>\n  <stringProp name=\"classname\">org.apache.jmeter.protocol.java.test.JavaTest</stringProp>\n"
+  },
+  {
+    "component": "JavaSampler",
+    "class_name": "org.apache.jmeter.protocol.java.sampler.JavaSampler",
+    "title": "JavaSampler",
+    "kind": "sampler",
+    "gui": "TestBeanGUI",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<elementProp name=\"arguments\" elementType=\"Arguments\">\n    <collectionProp name=\"Arguments.arguments\" />\n  </elementProp>\n"
+  },
+  {
+    "component": "KeystoreConfig",
+    "class_name": "org.apache.jmeter.config.KeystoreConfig",
+    "title": "KeystoreConfig",
+    "kind": "config",
+    "gui": "TestBeanGUI",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<stringProp name=\"clientCertAliasVarName\">certAlias</stringProp>\n  <stringProp name=\"endIndex\">-1</stringProp>\n  <stringProp name=\"preload\">True</stringProp>\n  <stringProp name=\"startIndex\">0</stringProp>\n"
+  },
+  {
+    "component": "LDAPExtSampler",
+    "class_name": "org.apache.jmeter.protocol.ldap.sampler.LDAPExtSampler",
+    "title": "LDAPExtSampler",
+    "kind": "sampler",
+    "gui": "TestBeanGUI",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": ""
+  },
+  {
+    "component": "LDAPSampler",
+    "class_name": "org.apache.jmeter.protocol.ldap.sampler.LDAPSampler",
+    "title": "LDAPSampler",
+    "kind": "sampler",
+    "gui": "TestBeanGUI",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": ""
+  },
+  {
+    "component": "LoginConfig",
+    "class_name": "org.apache.jmeter.config.LoginConfig",
+    "title": "LoginConfig",
+    "kind": "config",
+    "gui": "LoginConfigGui",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<stringProp name=\"ConfigTestElement.username\" />\n  <stringProp name=\"ConfigTestElement.password\" />\n"
+  },
+  {
+    "component": "LoopController",
+    "class_name": "org.apache.jmeter.control.LoopController",
+    "title": "LoopController",
+    "kind": "controller",
+    "gui": "TestBeanGUI",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": ""
+  },
+  {
+    "component": "MD5HexAssertion",
+    "class_name": "org.apache.jmeter.assertions.MD5HexAssertion",
+    "title": "MD5HexAssertion",
+    "kind": "assertion",
+    "gui": "MD5HexAssertionGUI",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<stringProp name=\"MD5HexAssertion.size\" />\n"
+  },
+  {
+    "component": "MailReaderSampler",
+    "class_name": "org.apache.jmeter.protocol.mail.sampler.MailReaderSampler",
+    "title": "MailReaderSampler",
+    "kind": "sampler",
+    "gui": "MailReaderSamplerGui",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<stringProp name=\"host_type\">pop3</stringProp>\n  <stringProp name=\"folder\">INBOX</stringProp>\n  <stringProp name=\"host\" />\n  <stringProp name=\"username\" />\n  <stringProp name=\"password\" />\n  <intProp name=\"num_messages\">-1</intProp>\n  <boolProp name=\"delete\">false</boolProp>\n  <stringProp name=\"SMTPSampler.useSSL\">false</stringProp>\n  <stringProp name=\"SMTPSampler.useStartTLS\">false</stringProp>\n  <stringProp name=\"SMTPSampler.trustAllCerts\">false</stringProp>\n  <stringProp name=\"SMTPSampler.enforceStartTLS\">false</stringProp>\n  <stringProp name=\"SMTPSampler.useLocalTrustStore\">false</stringProp>\n  <stringProp name=\"SMTPSampler.trustStoreToUse\" />\n  <stringProp name=\"SMTPSampler.tlsProtocols\" />\n"
+  },
+  {
+    "component": "MailerResultCollector",
+    "class_name": "org.apache.jmeter.reporters.MailerResultCollector",
+    "title": "MailerResultCollector",
+    "kind": "listener",
+    "gui": "TestBeanGUI",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<boolProp name=\"ResultCollector.error_logging\">false</boolProp>\n  <objProp>\n    <name>saveConfig</name>\n    <value class=\"SampleSaveConfiguration\">\n      <time>true</time>\n      <latency>true</latency>\n      <timestamp>true</timestamp>\n      <success>true</success>\n      <label>true</label>\n      <code>true</code>\n      <message>true</message>\n      <threadName>true</threadName>\n      <dataType>true</dataType>\n      <encoding>false</encoding>\n      <assertions>true</assertions>\n      <subresults>true</subresults>\n      <responseData>false</responseData>\n      <samplerData>false</samplerData>\n      <xml>false</xml>\n      <fieldNames>true</fieldNames>\n      <responseHeaders>false</responseHeaders>\n      <requestHeaders>false</requestHeaders>\n      <responseDataOnError>false</responseDataOnError>\n      <saveAssertionResultsFailureMessage>true</saveAssertionResultsFailureMessage>\n      <assertionsResultsToSave>0</assertionsResultsToSave>\n      <bytes>true</bytes>\n      <sentBytes>true</sentBytes>\n      <url>true</url>\n      <threadCounts>true</threadCounts>\n      <idleTime>true</idleTime>\n      <connectTime>true</connectTime>\n    </value>\n  </objProp>\n  <elementProp name=\"MailerResultCollector.mailer_model\" elementType=\"MailerModel\">\n    <stringProp name=\"MailerModel.successLimit\">2</stringProp>\n    <stringProp name=\"MailerModel.failureLimit\">2</stringProp>\n  </elementProp>\n"
+  },
+  {
+    "component": "ModuleController",
+    "class_name": "org.apache.jmeter.control.ModuleController",
+    "title": "ModuleController",
+    "kind": "controller",
+    "gui": "ModuleControllerGui",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": ""
+  },
+  {
+    "component": "MongoScriptSampler",
+    "class_name": "org.apache.jmeter.protocol.mongodb.sampler.MongoScriptSampler",
+    "title": "MongoScriptSampler",
+    "kind": "sampler",
+    "gui": "TestBeanGUI",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<stringProp name=\"database\" />\n  <stringProp name=\"password\" />\n  <stringProp name=\"source\" />\n  <stringProp name=\"username\" />\n"
+  },
+  {
+    "component": "MongoSourceElement",
+    "class_name": "org.apache.jmeter.protocol.mongodb.config.MongoSourceElement",
+    "title": "MongoSourceElement",
+    "kind": "config",
+    "gui": "TestBeanGUI",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<boolProp name=\"autoConnectRetry\">false</boolProp>\n  <intProp name=\"connectTimeout\">0</intProp>\n  <stringProp name=\"connection\" />\n  <intProp name=\"connectionsPerHost\">10</intProp>\n  <boolProp name=\"continueOnInsertError\">false</boolProp>\n  <boolProp name=\"fsync\">false</boolProp>\n  <longProp name=\"maxAutoConnectRetryTime\">0</longProp>\n  <intProp name=\"maxWaitTime\">120000</intProp>\n  <boolProp name=\"safe\">false</boolProp>\n  <boolProp name=\"socketKeepAlive\">false</boolProp>\n  <intProp name=\"socketTimeout\">0</intProp>\n  <stringProp name=\"source\" />\n  <intProp name=\"threadsAllowedToBlockForConnectionMultiplier\">5</intProp>\n  <boolProp name=\"waitForJournaling\">false</boolProp>\n  <intProp name=\"writeOperationNumberOfServers\">0</intProp>\n  <intProp name=\"writeOperationTimeout\">0</intProp>\n"
+  },
+  {
+    "component": "OnceOnlyController",
+    "class_name": "org.apache.jmeter.control.OnceOnlyController",
+    "title": "仅一次控制器",
+    "kind": "controller",
+    "gui": "OnceOnlyControllerGui",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": ""
+  },
+  {
+    "component": "OpenModelThreadGroup",
+    "class_name": "org.apache.jmeter.threads.openmodel.OpenModelThreadGroup",
+    "title": "开放模型线程组",
+    "kind": "thread",
+    "gui": "OpenModelThreadGroupGui",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<elementProp name=\"ThreadGroup.main_controller\" elementType=\"OpenModelThreadGroupController\" />\n  <stringProp name=\"ThreadGroup.on_sample_error\">continue</stringProp>\n"
+  },
+  {
+    "component": "PoissonRandomTimer",
+    "class_name": "org.apache.jmeter.timers.PoissonRandomTimer",
+    "title": "PoissonRandomTimer",
+    "kind": "timer",
+    "gui": "PoissonRandomTimerGui",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<stringProp name=\"ConstantTimer.delay\">300</stringProp>\n  <stringProp name=\"RandomTimer.range\">100</stringProp>\n"
+  },
+  {
+    "component": "PostThreadGroup",
+    "class_name": "org.apache.jmeter.threads.PostThreadGroup",
+    "title": "收尾线程组",
+    "kind": "thread",
+    "gui": "PostThreadGroupGui",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<stringProp name=\"ThreadGroup.on_sample_error\">continue</stringProp>\n  <intProp name=\"ThreadGroup.num_threads\">1</intProp>\n  <intProp name=\"ThreadGroup.ramp_time\">1</intProp>\n  <boolProp name=\"ThreadGroup.same_user_on_next_iteration\">true</boolProp>\n  <elementProp name=\"ThreadGroup.main_controller\" elementType=\"LoopController\" guiclass=\"LoopControlPanel\" testclass=\"LoopController\" testname=\"Loop Controller\">\n    <stringProp name=\"LoopController.loops\">1</stringProp>\n    <boolProp name=\"LoopController.continue_forever\">false</boolProp>\n  </elementProp>\n"
+  },
+  {
+    "component": "PreciseThroughputTimer",
+    "class_name": "org.apache.jmeter.timers.poissonarrivals.PreciseThroughputTimer",
+    "title": "PreciseThroughputTimer",
+    "kind": "timer",
+    "gui": "TestBeanGUI",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<doubleProp>\n    <name>allowedThroughputSurplus</name>\n    <value>1.0</value>\n    <savedValue>0.0</savedValue>\n  </doubleProp>\n  <intProp name=\"batchSize\">1</intProp>\n  <intProp name=\"batchThreadDelay\">0</intProp>\n  <longProp name=\"duration\">3600</longProp>\n  <intProp name=\"exactLimit\">10000</intProp>\n  <longProp name=\"randomSeed\">0</longProp>\n  <doubleProp>\n    <name>throughput</name>\n    <value>100.0</value>\n    <savedValue>0.0</savedValue>\n  </doubleProp>\n  <intProp name=\"throughputPeriod\">3600</intProp>\n"
+  },
+  {
+    "component": "ProxyControl",
+    "class_name": "org.apache.jmeter.protocol.http.proxy.ProxyControl",
+    "title": "ProxyControl",
+    "kind": "controller",
+    "gui": "ProxyControlGui",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<stringProp name=\"ProxyControlGui.port\">8888</stringProp>\n  <collectionProp name=\"ProxyControlGui.exclude_list\" />\n  <collectionProp name=\"ProxyControlGui.include_list\" />\n  <boolProp name=\"ProxyControlGui.capture_http_headers\">true</boolProp>\n  <intProp name=\"ProxyControlGui.grouping_mode\">0</intProp>\n  <boolProp name=\"ProxyControlGui.add_assertion\">false</boolProp>\n  <stringProp name=\"ProxyControlGui.sampler_type_name\" />\n  <boolProp name=\"ProxyControlGui.sampler_redirect_automatically\">false</boolProp>\n  <boolProp name=\"ProxyControlGui.sampler_follow_redirects\">true</boolProp>\n  <boolProp name=\"ProxyControlGui.use_keepalive\">true</boolProp>\n  <boolProp name=\"ProxyControlGui.detect_graphql_request\">true</boolProp>\n  <boolProp name=\"ProxyControlGui.sampler_download_images\">false</boolProp>\n  <intProp name=\"ProxyControlGui.proxy_http_sampler_naming_mode\">0</intProp>\n  <stringProp name=\"ProxyControlGui.default_encoding\" />\n  <stringProp name=\"ProxyControlGui.proxy_prefix_http_sampler_name\" />\n  <stringProp name=\"ProxyControlGui.proxy_pause_http_sampler\" />\n  <boolProp name=\"ProxyControlGui.notify_child_sl_filtered\">false</boolProp>\n  <boolProp name=\"ProxyControlGui.regex_match\">false</boolProp>\n  <stringProp name=\"ProxyControlGui.content_type_include\" />\n  <stringProp name=\"ProxyControlGui.content_type_exclude\" />\n"
+  },
+  {
+    "component": "PublisherSampler",
+    "class_name": "org.apache.jmeter.protocol.jms.sampler.PublisherSampler",
+    "title": "PublisherSampler",
+    "kind": "sampler",
+    "gui": "TestBeanGUI",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": ""
+  },
+  {
+    "component": "RandomController",
+    "class_name": "org.apache.jmeter.control.RandomController",
+    "title": "RandomController",
+    "kind": "controller",
+    "gui": "TestBeanGUI",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": ""
+  },
+  {
+    "component": "RandomOrderController",
+    "class_name": "org.apache.jmeter.control.RandomOrderController",
+    "title": "RandomOrderController",
+    "kind": "controller",
+    "gui": "RandomOrderControllerGui",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": ""
+  },
+  {
+    "component": "RandomVariableConfig",
+    "class_name": "org.apache.jmeter.config.RandomVariableConfig",
+    "title": "RandomVariableConfig",
+    "kind": "config",
+    "gui": "TestBeanGUI",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<stringProp name=\"maximumValue\" />\n  <stringProp name=\"minimumValue\">1</stringProp>\n  <stringProp name=\"outputFormat\" />\n  <boolProp name=\"perThread\">false</boolProp>\n  <stringProp name=\"randomSeed\" />\n  <stringProp name=\"variableName\" />\n"
+  },
+  {
+    "component": "RecordingController",
+    "class_name": "org.apache.jmeter.protocol.http.control.RecordingController",
+    "title": "RecordingController",
+    "kind": "controller",
+    "gui": "TestBeanGUI",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": ""
+  },
+  {
+    "component": "RegExUserParameters",
+    "class_name": "org.apache.jmeter.protocol.http.modifier.RegExUserParameters",
+    "title": "RegExUserParameters",
+    "kind": "preprocessor",
+    "gui": "RegExUserParametersGui",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<stringProp name=\"RegExUserParameters.regex_ref_name\" />\n  <stringProp name=\"RegExUserParameters.param_names_gr_nr\" />\n  <stringProp name=\"RegExUserParameters.param_values_gr_nr\" />\n"
+  },
+  {
+    "component": "RegexExtractor",
+    "class_name": "org.apache.jmeter.extractor.RegexExtractor",
+    "title": "正则表达式提取器",
+    "kind": "postprocessor",
+    "gui": "RegexExtractorGui",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<stringProp name=\"RegexExtractor.useHeaders\">false</stringProp>\n  <stringProp name=\"RegexExtractor.refname\" />\n  <stringProp name=\"RegexExtractor.regex\" />\n  <stringProp name=\"RegexExtractor.template\" />\n  <stringProp name=\"RegexExtractor.default\" />\n  <boolProp name=\"RegexExtractor.default_empty_value\">false</boolProp>\n  <stringProp name=\"RegexExtractor.match_number\" />\n"
+  },
+  {
+    "component": "ResponseAssertion",
+    "class_name": "org.apache.jmeter.assertions.ResponseAssertion",
+    "title": "ResponseAssertion",
+    "kind": "assertion",
+    "gui": "TestBeanGUI",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<collectionProp name=\"Asserion.test_strings\" />\n"
+  },
+  {
+    "component": "ResultAction",
+    "class_name": "org.apache.jmeter.reporters.ResultAction",
+    "title": "ResultAction",
+    "kind": "listener",
+    "gui": "ResultActionGui",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<intProp name=\"OnError.action\">0</intProp>\n"
+  },
+  {
+    "component": "ResultCollector",
+    "class_name": "org.apache.jmeter.reporters.ResultCollector",
+    "title": "ResultCollector",
+    "kind": "listener",
+    "gui": "TestBeanGUI",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<boolProp name=\"ResultCollector.error_logging\">false</boolProp>\n  <objProp>\n    <name>saveConfig</name>\n    <value class=\"SampleSaveConfiguration\">\n      <time>true</time>\n      <latency>true</latency>\n      <timestamp>true</timestamp>\n      <success>true</success>\n      <label>true</label>\n      <code>true</code>\n      <message>true</message>\n      <threadName>true</threadName>\n      <dataType>true</dataType>\n      <encoding>false</encoding>\n      <assertions>true</assertions>\n      <subresults>true</subresults>\n      <responseData>false</responseData>\n      <samplerData>false</samplerData>\n      <xml>false</xml>\n      <fieldNames>true</fieldNames>\n      <responseHeaders>false</responseHeaders>\n      <requestHeaders>false</requestHeaders>\n      <responseDataOnError>false</responseDataOnError>\n      <saveAssertionResultsFailureMessage>true</saveAssertionResultsFailureMessage>\n      <assertionsResultsToSave>0</assertionsResultsToSave>\n      <bytes>true</bytes>\n      <sentBytes>true</sentBytes>\n      <url>true</url>\n      <threadCounts>true</threadCounts>\n      <idleTime>true</idleTime>\n      <connectTime>true</connectTime>\n    </value>\n  </objProp>\n"
+  },
+  {
+    "component": "ResultSaver",
+    "class_name": "org.apache.jmeter.reporters.ResultSaver",
+    "title": "ResultSaver",
+    "kind": "listener",
+    "gui": "ResultSaverGui",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<stringProp name=\"FileSaver.filename\" />\n  <boolProp name=\"FileSaver.errorsonly\">false</boolProp>\n  <boolProp name=\"FileSaver.successonly\">false</boolProp>\n  <boolProp name=\"FileSaver.skipsuffix\">false</boolProp>\n  <boolProp name=\"FileSaver.skipautonumber\">false</boolProp>\n"
+  },
+  {
+    "component": "RunTime",
+    "class_name": "org.apache.jmeter.control.RunTime",
+    "title": "RunTime",
+    "kind": "controller",
+    "gui": "RunTimeGui",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<stringProp name=\"RunTime.seconds\">1</stringProp>\n"
+  },
+  {
+    "component": "SMIMEAssertion",
+    "class_name": "org.apache.jmeter.assertions.SMIMEAssertionTestElement",
+    "title": "SMIMEAssertion",
+    "kind": "assertion",
+    "gui": "SMIMEAssertionGui",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<boolProp name=\"SMIMEAssert.verifySignature\">false</boolProp>\n  <boolProp name=\"SMIMEAssert.notSigned\">false</boolProp>\n  <stringProp name=\"SMIMEAssert.issuerDn\" />\n  <stringProp name=\"SMIMEAssert.signerDn\" />\n  <stringProp name=\"SMIMEAssert.signerSerial\" />\n  <stringProp name=\"SMIMEAssert.signerEmail\" />\n  <stringProp name=\"SMIMEAssert.signerCertFile\" />\n  <boolProp name=\"SMIMEAssert.signerNoCheck\">false</boolProp>\n  <boolProp name=\"SMIMEAssert.signerCheckConstraints\">false</boolProp>\n  <boolProp name=\"SMIMEAssert.signerCheckByFile\">false</boolProp>\n  <stringProp name=\"SMIMEAssert.messagePosition\" />\n"
+  },
+  {
+    "component": "SetupThreadGroup",
+    "class_name": "org.apache.jmeter.threads.SetupThreadGroup",
+    "title": "准备线程组",
+    "kind": "thread",
+    "gui": "SetupThreadGroupGui",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<stringProp name=\"ThreadGroup.on_sample_error\">continue</stringProp>\n  <intProp name=\"ThreadGroup.num_threads\">1</intProp>\n  <intProp name=\"ThreadGroup.ramp_time\">1</intProp>\n  <boolProp name=\"ThreadGroup.same_user_on_next_iteration\">true</boolProp>\n  <elementProp name=\"ThreadGroup.main_controller\" elementType=\"LoopController\" guiclass=\"LoopControlPanel\" testclass=\"LoopController\" testname=\"Loop Controller\">\n    <stringProp name=\"LoopController.loops\">1</stringProp>\n    <boolProp name=\"LoopController.continue_forever\">false</boolProp>\n  </elementProp>\n"
+  },
+  {
+    "component": "SizeAssertion",
+    "class_name": "org.apache.jmeter.assertions.SizeAssertion",
+    "title": "响应大小断言",
+    "kind": "assertion",
+    "gui": "SizeAssertionGui",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<stringProp name=\"Assertion.test_field\">SizeAssertion.response_network_size</stringProp>\n  <stringProp name=\"SizeAssertion.size\" />\n  <intProp name=\"SizeAssertion.operator\">1</intProp>\n"
+  },
+  {
+    "component": "SmtpSampler",
+    "class_name": "org.apache.jmeter.protocol.smtp.sampler.SmtpSampler",
+    "title": "SmtpSampler",
+    "kind": "sampler",
+    "gui": "SmtpSamplerGui",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<stringProp name=\"SMTPSampler.server\" />\n  <stringProp name=\"SMTPSampler.serverPort\" />\n  <stringProp name=\"SMTPSampler.mailFrom\" />\n  <stringProp name=\"SMTPSampler.replyTo\" />\n  <stringProp name=\"SMTPSampler.receiverTo\" />\n  <stringProp name=\"SMTPSampler.receiverCC\" />\n  <stringProp name=\"SMTPSampler.receiverBCC\" />\n  <stringProp name=\"SMTPSampler.subject\" />\n  <stringProp name=\"SMTPSampler.suppressSubject\">false</stringProp>\n  <stringProp name=\"SMTPSampler.include_timestamp\">false</stringProp>\n  <stringProp name=\"SMTPSampler.message\" />\n  <stringProp name=\"SMTPSampler.plainBody\">false</stringProp>\n  <stringProp name=\"SMTPSampler.attachFile\" />\n  <stringProp name=\"SMTPSampler.useSSL\">false</stringProp>\n  <stringProp name=\"SMTPSampler.useStartTLS\">false</stringProp>\n  <stringProp name=\"SMTPSampler.trustAllCerts\">false</stringProp>\n  <stringProp name=\"SMTPSampler.enforceStartTLS\">false</stringProp>\n  <stringProp name=\"SMTPSampler.useLocalTrustStore\">false</stringProp>\n  <stringProp name=\"SMTPSampler.trustStoreToUse\" />\n  <stringProp name=\"SMTPSampler.tlsProtocols\" />\n  <boolProp name=\"SMTPSampler.use_eml\">false</boolProp>\n  <stringProp name=\"SMTPSampler.emlMessageToSend\" />\n  <stringProp name=\"SMTPSampler.useAuth\">false</stringProp>\n  <stringProp name=\"SMTPSampler.password\" />\n  <stringProp name=\"SMTPSampler.username\" />\n  <stringProp name=\"SMTPSampler.messageSizeStatistics\">false</stringProp>\n  <stringProp name=\"SMTPSampler.enableDebug\">false</stringProp>\n  <collectionProp name=\"SMTPSampler.headerFields\" />\n"
+  },
+  {
+    "component": "SubscriberSampler",
+    "class_name": "org.apache.jmeter.protocol.jms.sampler.SubscriberSampler",
+    "title": "SubscriberSampler",
+    "kind": "sampler",
+    "gui": "TestBeanGUI",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": ""
+  },
+  {
+    "component": "Summariser",
+    "class_name": "org.apache.jmeter.reporters.Summariser",
+    "title": "Summariser",
+    "kind": "listener",
+    "gui": "SummariserGui",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": ""
+  },
+  {
+    "component": "SwitchController",
+    "class_name": "org.apache.jmeter.control.SwitchController",
+    "title": "SwitchController",
+    "kind": "controller",
+    "gui": "SwitchControllerGui",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<stringProp name=\"SwitchController.value\" />\n"
+  },
+  {
+    "component": "SyncTimer",
+    "class_name": "org.apache.jmeter.timers.SyncTimer",
+    "title": "SyncTimer",
+    "kind": "timer",
+    "gui": "TestBeanGUI",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<intProp name=\"groupSize\">0</intProp>\n  <longProp name=\"timeoutInMs\">0</longProp>\n"
+  },
+  {
+    "component": "SystemSampler",
+    "class_name": "org.apache.jmeter.protocol.system.SystemSampler",
+    "title": "SystemSampler",
+    "kind": "sampler",
+    "gui": "SystemSamplerGui",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<boolProp name=\"SystemSampler.checkReturnCode\">false</boolProp>\n  <stringProp name=\"SystemSampler.expectedReturnCode\">0</stringProp>\n  <stringProp name=\"SystemSampler.command\" />\n  <elementProp name=\"SystemSampler.arguments\" elementType=\"Arguments\" guiclass=\"ArgumentsPanel\" testclass=\"Arguments\" testname=\"User Defined Variables\">\n    <collectionProp name=\"Arguments.arguments\" />\n  </elementProp>\n  <elementProp name=\"SystemSampler.environment\" elementType=\"Arguments\" guiclass=\"ArgumentsPanel\" testclass=\"Arguments\" testname=\"User Defined Variables\">\n    <collectionProp name=\"Arguments.arguments\" />\n  </elementProp>\n  <stringProp name=\"SystemSampler.directory\" />\n"
+  },
+  {
+    "component": "TCPSampler",
+    "class_name": "org.apache.jmeter.protocol.tcp.sampler.TCPSampler",
+    "title": "TCPSampler",
+    "kind": "sampler",
+    "gui": "TCPSamplerGui",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<stringProp name=\"TCPSampler.server\" />\n  <boolProp name=\"TCPSampler.reUseConnection\">true</boolProp>\n  <stringProp name=\"TCPSampler.port\" />\n  <boolProp name=\"TCPSampler.nodelay\">false</boolProp>\n  <stringProp name=\"TCPSampler.timeout\" />\n  <stringProp name=\"TCPSampler.request\" />\n  <boolProp name=\"TCPSampler.closeConnection\">false</boolProp>\n  <stringProp name=\"ConfigTestElement.username\" />\n  <stringProp name=\"ConfigTestElement.password\" />\n"
+  },
+  {
+    "component": "TestAction",
+    "class_name": "org.apache.jmeter.sampler.TestAction",
+    "title": "TestAction",
+    "kind": "sampler",
+    "gui": "TestActionGui",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<intProp name=\"ActionProcessor.action\">1</intProp>\n  <intProp name=\"ActionProcessor.target\">0</intProp>\n  <stringProp name=\"ActionProcessor.duration\">0</stringProp>\n"
+  },
+  {
+    "component": "TestFragmentController",
+    "class_name": "org.apache.jmeter.control.TestFragmentController",
+    "title": "TestFragmentController",
+    "kind": "controller",
+    "gui": "TestFragmentControllerGui",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": ""
+  },
+  {
+    "component": "TestPlan",
+    "class_name": "org.apache.jmeter.testelement.TestPlan",
+    "title": "测试计划",
+    "kind": "plan",
+    "gui": "TestPlanGui",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<elementProp name=\"TestPlan.user_defined_variables\" elementType=\"Arguments\" guiclass=\"ArgumentsPanel\" testclass=\"Arguments\" testname=\"User Defined Variables\">\n    <collectionProp name=\"Arguments.arguments\" />\n  </elementProp>\n"
+  },
+  {
+    "component": "ThreadGroup",
+    "class_name": "org.apache.jmeter.threads.ThreadGroup",
+    "title": "线程组",
+    "kind": "thread",
+    "gui": "ThreadGroupGui",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<stringProp name=\"ThreadGroup.on_sample_error\">continue</stringProp>\n  <intProp name=\"ThreadGroup.num_threads\">1</intProp>\n  <intProp name=\"ThreadGroup.ramp_time\">1</intProp>\n  <boolProp name=\"ThreadGroup.same_user_on_next_iteration\">true</boolProp>\n  <elementProp name=\"ThreadGroup.main_controller\" elementType=\"LoopController\" guiclass=\"LoopControlPanel\" testclass=\"LoopController\" testname=\"Loop Controller\">\n    <stringProp name=\"LoopController.loops\">1</stringProp>\n    <boolProp name=\"LoopController.continue_forever\">false</boolProp>\n  </elementProp>\n"
+  },
+  {
+    "component": "ThroughputController",
+    "class_name": "org.apache.jmeter.control.ThroughputController",
+    "title": "吞吐量控制器",
+    "kind": "controller",
+    "gui": "ThroughputControllerGui",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<intProp name=\"ThroughputController.style\">1</intProp>\n  <boolProp name=\"ThroughputController.perThread\">false</boolProp>\n  <intProp name=\"ThroughputController.maxThroughput\">1</intProp>\n  <FloatProperty>\n    <name>ThroughputController.percentThroughput</name>\n    <value>1.0</value>\n    <savedValue>0.0</savedValue>\n  </FloatProperty>\n"
+  },
+  {
+    "component": "TransactionController",
+    "class_name": "org.apache.jmeter.control.TransactionController",
+    "title": "TransactionController",
+    "kind": "controller",
+    "gui": "TransactionControllerGui",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<boolProp name=\"TransactionController.includeTimers\">false</boolProp>\n"
+  },
+  {
+    "component": "URLRewritingModifier",
+    "class_name": "org.apache.jmeter.protocol.http.modifier.URLRewritingModifier",
+    "title": "URLRewritingModifier",
+    "kind": "preprocessor",
+    "gui": "URLRewritingModifierGui",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<stringProp name=\"argument_name\" />\n  <boolProp name=\"path_extension\">false</boolProp>\n  <boolProp name=\"path_extension_no_equals\">false</boolProp>\n  <boolProp name=\"path_extension_no_questionmark\">false</boolProp>\n  <boolProp name=\"cache_value\">false</boolProp>\n  <boolProp name=\"encode\">false</boolProp>\n"
+  },
+  {
+    "component": "UniformRandomTimer",
+    "class_name": "org.apache.jmeter.timers.UniformRandomTimer",
+    "title": "UniformRandomTimer",
+    "kind": "timer",
+    "gui": "UniformRandomTimerGui",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<stringProp name=\"ConstantTimer.delay\">0</stringProp>\n  <stringProp name=\"RandomTimer.range\">100.0</stringProp>\n"
+  },
+  {
+    "component": "UserParameters",
+    "class_name": "org.apache.jmeter.modifiers.UserParameters",
+    "title": "UserParameters",
+    "kind": "preprocessor",
+    "gui": "UserParametersGui",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<collectionProp name=\"UserParameters.names\" />\n  <collectionProp name=\"UserParameters.thread_values\">\n    <collectionProp name=\"1\" />\n  </collectionProp>\n  <boolProp name=\"UserParameters.per_iteration\">false</boolProp>\n"
+  },
+  {
+    "component": "WhileController",
+    "class_name": "org.apache.jmeter.control.WhileController",
+    "title": "While 循环控制器",
+    "kind": "controller",
+    "gui": "WhileControllerGui",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<stringProp name=\"WhileController.condition\" />\n"
+  },
+  {
+    "component": "XMLAssertion",
+    "class_name": "org.apache.jmeter.assertions.XMLAssertion",
+    "title": "XMLAssertion",
+    "kind": "assertion",
+    "gui": "XMLAssertionGui",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": ""
+  },
+  {
+    "component": "XMLSchemaAssertion",
+    "class_name": "org.apache.jmeter.assertions.XMLSchemaAssertion",
+    "title": "XMLSchemaAssertion",
+    "kind": "assertion",
+    "gui": "XMLSchemaAssertionGUI",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<stringProp name=\"xmlschema_assertion_filename\" />\n"
+  },
+  {
+    "component": "XPath2Assertion",
+    "class_name": "org.apache.jmeter.assertions.XPath2Assertion",
+    "title": "XPath2Assertion",
+    "kind": "assertion",
+    "gui": "XPath2AssertionGui",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<boolProp name=\"XPath.negate\">false</boolProp>\n  <stringProp name=\"XPath.xpath\">/</stringProp>\n  <stringProp name=\"XPath.namespaces\" />\n"
+  },
+  {
+    "component": "XPath2Extractor",
+    "class_name": "org.apache.jmeter.extractor.XPath2Extractor",
+    "title": "XPath2Extractor",
+    "kind": "postprocessor",
+    "gui": "XPath2ExtractorGui",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<stringProp name=\"XPathExtractor2.default\" />\n  <stringProp name=\"XPathExtractor2.refname\" />\n  <stringProp name=\"XPathExtractor2.matchNumber\">0</stringProp>\n  <stringProp name=\"XPathExtractor2.xpathQuery\" />\n  <stringProp name=\"XPathExtractor2.namespaces\" />\n"
+  },
+  {
+    "component": "XPathAssertion",
+    "class_name": "org.apache.jmeter.assertions.XPathAssertion",
+    "title": "XPathAssertion",
+    "kind": "assertion",
+    "gui": "XPathAssertionGui",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<boolProp name=\"XPath.negate\">false</boolProp>\n  <stringProp name=\"XPath.xpath\">/</stringProp>\n  <boolProp name=\"XPath.validate\">false</boolProp>\n  <boolProp name=\"XPath.whitespace\">false</boolProp>\n  <boolProp name=\"XPath.tolerant\">false</boolProp>\n  <boolProp name=\"XPath.namespace\">false</boolProp>\n"
+  },
+  {
+    "component": "XPathExtractor",
+    "class_name": "org.apache.jmeter.extractor.XPathExtractor",
+    "title": "XPathExtractor",
+    "kind": "postprocessor",
+    "gui": "XPathExtractorGui",
+    "source": "jmeter",
+    "version": "5.6.3",
+    "template_properties": "<stringProp name=\"XPathExtractor.default\" />\n  <stringProp name=\"XPathExtractor.refname\" />\n  <stringProp name=\"XPathExtractor.matchNumber\">-1</stringProp>\n  <stringProp name=\"XPathExtractor.xpathQuery\" />\n  <boolProp name=\"XPathExtractor.validate\">false</boolProp>\n  <boolProp name=\"XPathExtractor.tolerant\">false</boolProp>\n  <boolProp name=\"XPathExtractor.namespace\">false</boolProp>\n"
+  }
+]

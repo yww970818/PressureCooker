@@ -1,0 +1,22 @@
+cluster.env
+runtime/
+controlplane/mcp/node_modules/
+vendor/node-*-linux-x64.tar.xz
+vendor/jmeter-manager-linux-amd64
+vendor/jmeter-mcp-linux-amd64
+vendor/*.tgz
+
+vendor/minio-linux-amd64
+
+# Local dependencies, build outputs and private runtime files
+**/node_modules/
+**/dist/
+**/.build/
+**/__pycache__/
+**/._*
+.DS_Store
+vendor/jmeter-executor-linux-amd64
+vendor/pressurecooker-thread-observer.jar
+vendor/thread-observer.sha256
+vendor/thread-observer-sources.sha256
+vendor/pressurecooker-ops-*

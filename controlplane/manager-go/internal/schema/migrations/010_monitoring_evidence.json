@@ -1,0 +1,9 @@
+{
+ "version":10,
+ "name":"monitoring_evidence",
+ "statements":[
+  "CREATE TABLE IF NOT EXISTS `{{prefix}}monitoring_revisions`(id VARCHAR(101) COLLATE utf8mb4_bin PRIMARY KEY,project_id VARCHAR(101) COLLATE utf8mb4_bin NOT NULL,report_id VARCHAR(101) COLLATE utf8mb4_bin NOT NULL,revision INT NOT NULL,created_at VARCHAR(64) NOT NULL,key_hash VARCHAR(64) NOT NULL,request_hash VARCHAR(64) NOT NULL,source_hash VARCHAR(64) NOT NULL DEFAULT '',data LONGTEXT NOT NULL,UNIQUE KEY report_revision(project_id,report_id,revision),UNIQUE KEY report_key(project_id,report_id,key_hash)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
+  "CREATE TABLE IF NOT EXISTS `{{prefix}}monitoring_evidence`(id VARCHAR(101) COLLATE utf8mb4_bin PRIMARY KEY,project_id VARCHAR(101) COLLATE utf8mb4_bin NOT NULL,report_id VARCHAR(101) COLLATE utf8mb4_bin NOT NULL,created_at VARCHAR(64) NOT NULL,sha256 VARCHAR(64) NOT NULL,data LONGTEXT NOT NULL,UNIQUE KEY report_hash(project_id,report_id,sha256)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
+  "CREATE TABLE IF NOT EXISTS `{{prefix}}monitoring_memberships`(id VARCHAR(101) COLLATE utf8mb4_bin PRIMARY KEY,project_id VARCHAR(101) COLLATE utf8mb4_bin NOT NULL,report_id VARCHAR(101) COLLATE utf8mb4_bin NOT NULL,revision INT NOT NULL,created_at VARCHAR(64) NOT NULL,position INT NOT NULL,entry_id VARCHAR(101) COLLATE utf8mb4_bin NOT NULL,component VARCHAR(32) NOT NULL,instance VARCHAR(500) NOT NULL,evidence_id VARCHAR(101) COLLATE utf8mb4_bin NOT NULL,UNIQUE KEY revision_entry(project_id,report_id,revision,entry_id),INDEX revision_page(project_id,report_id,revision,component,position)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
+ ]
+}
