@@ -1,5 +1,5 @@
 export const cookieAccountPrefix = 'script_identity.';
-export const maxCookieAccounts = 20;
+export const maxCookieAccounts = 64;
 const namePattern = /^[A-Za-z][A-Za-z0-9_-]{0,39}$/;
 const fieldPattern = /^[a-z][a-z0-9_-]{0,39}$/;
 const validField = field => typeof field==='string' && fieldPattern.test(field) && !['constructor','prototype','__proto__'].includes(field);

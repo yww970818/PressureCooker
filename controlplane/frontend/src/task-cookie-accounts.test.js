@@ -20,7 +20,7 @@ it.each([
 ])('rejects invalid declared identities', (account,error)=>expect(()=>buildCookieAccountProperties([account])).toThrow(error));
 it('rejects duplicate identities and excessive entries',()=>{
  expect(()=>buildCookieAccountProperties([{...role,values:{user_id:'1'}},{...role,values:{user_id:'2'}}])).toThrow('重复');
- expect(()=>buildCookieAccountProperties(Array.from({length:21},(_,i)=>({...role,name:`a${i}`})))).toThrow('20');
+ expect(()=>buildCookieAccountProperties(Array.from({length:65},(_,i)=>({...role,name:`a${i}`})))).toThrow('64');
 });
 it('does not add an implicit Cookie requirement and validates optional identities when filled',()=>{
  expect(buildCookieAccountProperties(applyScriptCookieAccounts([{schema_version:1,name:'empty',label:'空',purpose:'无凭据',required:true}],[],()=> 'id'))).toEqual({});
@@ -37,4 +37,14 @@ it('serializes only declared arbitrary credential fields without implicit Cookie
  const rows=applyScriptCookieAccounts([role],[],()=> 'id');
  rows[0].values={user_id:'private-id',credential:'private',extra:'discard'};
  expect(buildCookieAccountProperties(rows)).toEqual({'script_identity.client.user_id':'private-id','script_identity.client.credential':'private'});
+});
+
+it('supports 64 optional identities while submitting only 50 active values',()=>{
+ const declarations=Array.from({length:64},(_,i)=>({...role,name:`actor_${i+1}`,required:false,fields:['credential'],required_fields:['credential']}));
+ const rows=applyScriptCookieAccounts(declarations,[],()=>crypto.randomUUID());
+ for(let i=0;i<50;i++)rows[i].values.credential=`synthetic-${i}`;
+ const properties=buildCookieAccountProperties(rows);
+ expect(Object.keys(properties)).toHaveLength(50);
+ expect(properties['script_identity.actor_50.credential']).toBe('synthetic-49');
+ expect(properties['script_identity.actor_64.credential']).toBeUndefined();
 });

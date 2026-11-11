@@ -5378,7 +5378,7 @@
         "openWorldHint": false,
         "readOnlyHint": false
       },
-      "description": "使用与控制台相同的管理端队列提交任务。仅当已发布脚本的 requires_project_environment 明确为 false 时可省略 environmentId，旧脚本及未完全绑定流程仍须提供；CSV脚本须提供 datasetSelections，支持copy/shard和每节点多个文件；timeoutSeconds 10至86400。脚本身份使用 pressurecooker.script_identities schema_version=1 声明，字段含name/type/secret/required；properties按script_identity.\u003c身份名\u003e.\u003c声明字段\u003e配置，最多20条身份；认证如何使用由脚本决定，旧Cookie身份脚本须显式转换并重新发布。身份名以字母开头，最多40个字母、数字、下划线或短横线。脚本选择身份，平台不自动轮询。全局属性合计最多100项，每值4096字符且身份字段为单行文本。任务固定环境快照；必须选择 clusterId，只使用所选集群控制器；省略 workers 时由服务端固定该集群全部关联节点，各节点执行完整 JMX，必须提供稳定幂等标识并在重试时复用参数。",
+      "description": "使用与控制台相同的管理端队列提交任务。仅当已发布脚本的 requires_project_environment 明确为 false 时可省略 environmentId，旧脚本及未完全绑定流程仍须提供；CSV脚本须提供 datasetSelections，支持copy/shard和每节点多个文件；timeoutSeconds 10至86400。脚本身份使用 pressurecooker.script_identities schema_version=1 声明，字段含name/type/secret/required；properties按script_identity.\u003c身份名\u003e.\u003c声明字段\u003e配置，最多64条身份；认证如何使用由脚本决定，旧Cookie身份脚本须显式转换并重新发布。身份名以字母开头，最多40个字母、数字、下划线或短横线。脚本选择身份，平台不自动轮询。全局属性合计最多100项，每值4096字符且身份字段为单行文本。任务固定环境快照；必须选择 clusterId，只使用所选集群控制器；省略 workers 时由服务端固定该集群全部关联节点，各节点执行完整 JMX，必须提供稳定幂等标识并在重试时复用参数。",
       "inputSchema": {
         "additionalProperties": false,
         "allOf": [

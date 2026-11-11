@@ -9,6 +9,9 @@ import (
 
 const scriptIdentitiesMarker = "pressurecooker.script_identities"
 const scriptIdentityPrefix = "script_identity."
+const maxScriptIdentities = 64
+const maxScriptIdentityFields = 20
+const maxScriptIdentitiesBytes = 64 << 10
 
 func normalizeScriptIdentities(raw any) (Obj, error) {
 	declaration := obj(raw)
@@ -20,8 +23,8 @@ func normalizeScriptIdentities(raw any) (Obj, error) {
 		return nil, api(400, "invalid_script_identities", "脚本身份须声明 schema_version=1")
 	}
 	rows, ok := declaration["identities"].([]any)
-	if !ok || len(rows) > 20 {
-		return nil, api(400, "invalid_script_identities", "脚本身份须为最多20条的数组")
+	if !ok || len(rows) > maxScriptIdentities {
+		return nil, api(400, "invalid_script_identities", "脚本身份须为最多64条的数组")
 	}
 	out := []any{}
 	seen := map[string]bool{}
@@ -36,7 +39,7 @@ func normalizeScriptIdentities(raw any) (Obj, error) {
 		}
 		seen[name] = true
 		fields, ok := row["fields"].([]any)
-		if !ok || len(fields) > 20 {
+		if !ok || len(fields) > maxScriptIdentityFields {
 			return nil, api(400, "invalid_script_identities", "身份字段须为最多20项的数组")
 		}
 		normalized := []any{}
@@ -62,7 +65,11 @@ func normalizeScriptIdentities(raw any) (Obj, error) {
 		}
 		out = append(out, Obj{"name": name, "label": row["label"], "purpose": row["purpose"], "required": required, "fields": normalized})
 	}
-	return Obj{"schema_version": 1, "identities": out}, nil
+	result := Obj{"schema_version": 1, "identities": out}
+	if len(encoded(result)) > maxScriptIdentitiesBytes {
+		return nil, api(400, "invalid_script_identities", "身份声明超过64KiB")
+	}
+	return result, nil
 }
 func scriptIdentityMetadata(content string) (Obj, error) {
 	roots, err := parseXMLFragment(content)
@@ -77,7 +84,7 @@ func scriptIdentityMetadata(content string) (Obj, error) {
 				if child.Name.Local != "stringProp" || child.attr("name") != scriptIdentitiesMarker {
 					continue
 				}
-				if result != nil || len(child.text()) > 64<<10 {
+				if result != nil || len(child.text()) > maxScriptIdentitiesBytes {
 					return api(400, "invalid_script_identities", "身份声明重复或过大")
 				}
 				var value any

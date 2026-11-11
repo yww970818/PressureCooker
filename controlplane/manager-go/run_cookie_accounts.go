@@ -13,6 +13,7 @@ var cookieAccountKeyRE = regexp.MustCompile(`^(?:cookie_account|script_identity)
 // belongs to the script; the platform never assigns or rotates an account.
 func validateCookieAccounts(properties Obj) error {
 	accounts := map[string]map[string]string{}
+	legacy := map[string]bool{}
 	for key, raw := range properties {
 		if !strings.HasPrefix(key, cookieAccountPrefix) && !strings.HasPrefix(key, scriptIdentityPrefix) {
 			continue
@@ -26,9 +27,12 @@ func validateCookieAccounts(properties Obj) error {
 			accounts[match[1]] = map[string]string{}
 		}
 		accounts[match[1]][match[2]] = value
+		if strings.HasPrefix(key, cookieAccountPrefix) {
+			legacy[match[1]] = true
+		}
 	}
-	if len(accounts) > 20 {
-		return api(400, "invalid_cookie_accounts", "认证身份最多 20 条")
+	if len(accounts) > maxScriptIdentities || len(legacy) > 20 {
+		return api(400, "invalid_cookie_accounts", "新版认证身份最多64条，历史身份最多20条")
 	}
 	// Required values depend on the selected immutable script, checked after
 	// environment resolution by validateExecutionIdentities.

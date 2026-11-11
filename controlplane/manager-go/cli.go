@@ -91,6 +91,38 @@ func runCLI(args []string) error {
 	}
 	var result any
 	switch command {
+	case "compile-workflow":
+		if e = need(2); e != nil {
+			return e
+		}
+		content, err := readLimitedFile(pos[0], 32<<20)
+		if err != nil {
+			return err
+		}
+		var graph Obj
+		if json.Unmarshal(content, &graph) != nil {
+			return fmt.Errorf("invalid workflow JSON")
+		}
+		if nested := obj(graph["graph"]); len(nested) > 0 {
+			graph = nested
+		}
+		jmx, err := compileWorkflow(graph)
+		if err != nil {
+			return err
+		}
+		f, err := os.OpenFile(pos[1], os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0600)
+		if err != nil {
+			return err
+		}
+		_, err = f.WriteString(jmx)
+		ce := f.Close()
+		if err != nil {
+			return err
+		}
+		if ce != nil {
+			return ce
+		}
+		result = Obj{"output": pos[1], "sha256": digest([]byte(jmx)), "offline": true}
 	case "convert-script-identities":
 		if e = need(2); e != nil {
 			return e
