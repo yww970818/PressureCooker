@@ -243,6 +243,10 @@ func importWorkflowGraph(content string) (Obj, error) {
 // Creation validates and compiles the parsed graph in validateWorkspace. Other
 // callers use importWorkflowGraph to retain validation without persisting it.
 func parseWorkflowGraph(content string) (Obj, error) {
+	declaration, identityErr := scriptIdentityMetadata(content)
+	if identityErr != nil {
+		return nil, identityErr
+	}
 	roots, e := parseXMLFragment(content)
 	if e != nil {
 		return nil, e
@@ -331,6 +335,9 @@ func parseWorkflowGraph(content string) (Obj, error) {
 			if d, e := decode([]byte(component.propText(datasetMarker))); e == nil {
 				obj(node["properties"])["dataset_columns"] = d["columns"]
 			}
+		}
+		if parentID == "" && declaration != nil {
+			obj(node["properties"])["script_identities"] = declaration
 		}
 		index++
 		graph["nodes"] = append(arr(graph["nodes"]), node)
