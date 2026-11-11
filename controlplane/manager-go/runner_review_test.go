@@ -178,7 +178,14 @@ func TestRunnerReviewLostControllerFencedResolutionUnblocksOtherCluster(t *testi
 		return run
 	}
 	a := create("controller-a", "lost-a")
-	b := create("controller-b", "healthy-b")
+	// Before worker pre-occupation was enforced, installations could persist
+	// overlapping queued Redis tasks. Seed that historical record directly so
+	// this recovery test keeps exercising the older queued-task handoff.
+	b := runnerLegacyRun(t, p, plan, "controller-b", []any{"worker-1"})
+	b, e := p.updateRun(str(b["id"]), Obj{"execution_mode": "redis", "attempt_id": newID("attempt-"), "worker_snapshot": []protocol.Worker{{ID: "worker-1", AgentURL: peer.URL}}})
+	if e != nil {
+		t.Fatal(e)
+	}
 	q, e := p.runnerQueue()
 	if e != nil {
 		t.Fatal(e)
@@ -247,7 +254,7 @@ func TestRunnerReviewLostControllerFencedResolutionUnblocksOtherCluster(t *testi
 	resolve()
 	stored, e = p.get("runs", str(a["id"]))
 	if e != nil || stored["status"] != "INTERRUPTED" || !boolean(stored["runner_reconciled"]) {
-		t.Fatal("lost A kept global SQL slot", stored, e)
+		t.Fatal("lost A kept worker reservation", stored, e)
 	}
 	resumed := "controller-a/" + str(a["id"]) + "/" + str(a["attempt_id"]) + "/resumed"
 	ok, e = q.Acquire(context.Background(), resumed)

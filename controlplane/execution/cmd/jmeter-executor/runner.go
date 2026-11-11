@@ -12,6 +12,8 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"sort"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -24,6 +26,7 @@ type journal struct {
 	Task                                                protocol.Task
 	MessageID, Stage, Lease, Started, Finished, Outcome string
 	ExitCode                                            int
+	RuntimeSlot                                         int
 	Generations                                         map[string]int64
 	Touched                                             []string
 	Inputs                                              []protocol.ObjectRef
@@ -43,6 +46,9 @@ type runner struct {
 	mu       sync.Mutex
 	active   *activeJob
 	delivery sync.Map
+	jobs     map[string]*runner
+	slots    [maxCoreRuntimeSlots]bool
+	tasks    sync.WaitGroup
 }
 
 var errStop = errors.New("stop requested")
@@ -61,6 +67,24 @@ func (r *runner) status() map[string]any {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	out := map[string]any{"healthy": true, "status": "idle", "generation": 0, "job": nil, "reset_operation": nil}
+	if len(r.jobs) > 0 {
+		out["status"] = "running"
+		// The existing node-report contract has one optional job. Pick a
+		// deterministic live task; per-task control always uses the registry.
+		ids := make([]string, 0, len(r.jobs))
+		for id := range r.jobs {
+			ids = append(ids, id)
+		}
+		sort.Strings(ids)
+		child := r.jobs[ids[0]]
+		child.mu.Lock()
+		state := "CLAIMING"
+		if child.active != nil {
+			state = child.active.state
+		}
+		child.mu.Unlock()
+		out["job"] = map[string]string{"id": ids[0], "kind": "run", "state": state}
+	}
 	if a := r.active; a != nil {
 		out["status"] = "running"
 		out["job"] = map[string]string{"id": a.id, "kind": "run", "state": a.state}
@@ -78,6 +102,10 @@ func (r *runner) setState(id, state string) {
 func (r *runner) stop(id string) bool { return r.stopMode(id, "", false) }
 func (r *runner) stopMode(id, attempt string, graceful bool) bool {
 	r.mu.Lock()
+	if child := r.jobs[id]; child != nil {
+		r.mu.Unlock()
+		return child.stopMode(id, attempt, graceful)
+	}
 	defer r.mu.Unlock()
 	a := r.active
 	if a == nil || a.id != id || (attempt != "" && attempt != a.attempt) {
@@ -92,7 +120,7 @@ func (r *runner) stopMode(id, attempt string, graceful bool) bool {
 	if graceful && wasRunning {
 		// JMeter's official non-GUI Shutdown command lets the current samples finish.
 		// A subsequent force request or an expired grace period still kills the group.
-		conn, e := net.DialTimeout("udp", "127.0.0.1:4445", time.Second)
+		conn, e := net.DialTimeout("udp", net.JoinHostPort("127.0.0.1", strconv.Itoa(r.stopPort())), time.Second)
 		if e == nil {
 			_, e = conn.Write([]byte("Shutdown"))
 			conn.Close()
@@ -161,6 +189,7 @@ func wait(ctx context.Context, delay time.Duration) bool {
 	}
 }
 func (r *runner) loop(ctx context.Context) {
+	defer r.tasks.Wait()
 	consumer := r.s.c.id + "-" + r.s.boot
 	cluster := r.s.c.cluster
 	cursor := "0-0"
@@ -176,7 +205,7 @@ func (r *runner) loop(ctx context.Context) {
 		}
 		cursor = next
 		for _, m := range msgs {
-			r.handle(ctx, m)
+			r.dispatch(ctx, m)
 		}
 		msgs, e = r.s.q.Read(ctx, cluster, consumer)
 		if e != nil {
@@ -184,7 +213,7 @@ func (r *runner) loop(ctx context.Context) {
 			continue
 		}
 		for _, m := range msgs {
-			r.handle(ctx, m)
+			r.dispatch(ctx, m)
 		}
 	}
 }
@@ -195,7 +224,63 @@ func terminal(s string) bool {
 	}
 	return false
 }
+func (r *runner) stopPort() int {
+	if r.s == nil {
+		return 4445
+	}
+	return r.s.c.stopPort()
+}
+
+// Reserve before launching a goroutine so a reclaimed/duplicate stream message
+// cannot claim the same local task or race its journal. A bounded identity pool
+// also bounds concurrent Core JVMs; overflow stays pending in the stream.
+func (r *runner) reserve(m queue.Message) (*runner, func()) {
+	id := m.SignedTask.Task.TaskID
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if r.jobs[id] != nil {
+		return nil, nil
+	}
+	for i, used := range r.slots {
+		if used {
+			continue
+		}
+		c := r.s.c
+		c.runtimeSlot = i + 1
+		s := &service{c: c, q: r.s.q, s: r.s.s, http: r.s.http, boot: r.s.boot}
+		child := &runner{s: s}
+		if r.jobs == nil {
+			r.jobs = map[string]*runner{}
+		}
+		r.jobs[id], r.slots[i] = child, true
+		r.tasks.Add(1)
+		return child, func() {
+			r.mu.Lock()
+			delete(r.jobs, id)
+			r.slots[i] = false
+			r.mu.Unlock()
+			r.tasks.Done()
+		}
+	}
+	return nil, nil
+}
+func (r *runner) dispatch(ctx context.Context, m queue.Message) {
+	if ctx.Err() != nil {
+		return
+	}
+	child, done := r.reserve(m)
+	if child != nil {
+		go func() { defer done(); child.handleTask(ctx, m) }()
+	}
+}
 func (r *runner) handle(ctx context.Context, m queue.Message) {
+	child, done := r.reserve(m)
+	if child != nil {
+		defer done()
+		child.handleTask(ctx, m)
+	}
+}
+func (r *runner) handleTask(ctx context.Context, m queue.Message) {
 	s := r.s
 	t := m.SignedTask.Task
 	if m.Invalid || protocol.VerifyTask(m.SignedTask, s.c.token) != nil || !protocol.ValidID(t.TaskID) || !protocol.ValidID(t.AttemptID) || t.ControllerID != s.c.id || t.ClusterID != s.c.cluster {
@@ -212,6 +297,9 @@ func (r *runner) handle(ctx context.Context, m queue.Message) {
 	}
 	prior := readErr == nil
 	if prior {
+		if j.RuntimeSlot < 0 || j.RuntimeSlot > maxCoreRuntimeSlots {
+			return
+		}
 		if j.Task.AttemptID != t.AttemptID {
 			return
 		}
@@ -219,8 +307,11 @@ func (r *runner) handle(ctx context.Context, m queue.Message) {
 			return
 		}
 	}
+	if len(t.Workers) == 0 || len(t.Workers) > 64 {
+		return
+	}
 	lease := queue.Token(s.c.id, t.TaskID, t.AttemptID, uuid())
-	ok, e := s.q.Acquire(ctx, lease)
+	ok, e := s.q.Acquire(ctx, lease, workerIDs(t)...)
 	if !ok || e != nil {
 		return
 	}
@@ -249,7 +340,7 @@ func (r *runner) handle(ctx context.Context, m queue.Message) {
 		cancel(nil)
 	}()
 	if !prior {
-		j = journal{Task: t, MessageID: m.ID, Started: timestamp(), Stage: "CLAIMING", Lease: lease, ExitCode: -1, Generations: map[string]int64{}}
+		j = journal{Task: t, MessageID: m.ID, Started: timestamp(), Stage: "CLAIMING", Lease: lease, ExitCode: -1, RuntimeSlot: s.c.runtimeSlot, Generations: map[string]int64{}}
 	} else if j.Stage == "CLAIMING" { // A timed-out claim may already have committed; console returns its original timestamp.
 		j.Started = timestamp()
 		j.Task = t
@@ -310,6 +401,7 @@ func (r *runner) handle(ctx context.Context, m queue.Message) {
 	// independently prevents a second JVM launch after an uncertain restart.
 	if claim.Execute && j.Stage == "CLAIMING" {
 		j.Stage = "PREPARING"
+		j.RuntimeSlot = s.c.runtimeSlot
 		j.Lease = lease
 		if e = r.persist(&j); e != nil {
 			return
@@ -384,7 +476,7 @@ func (r *runner) handle(ctx context.Context, m queue.Message) {
 			return
 		}
 	}
-	if e = s.collectOutputs(t.TaskID, r.raw(t.TaskID)); e != nil {
+	if e = s.collectOutputsAs(t.TaskID, r.raw(t.TaskID), engineUID+j.RuntimeSlot); e != nil {
 		if !errors.Is(e, errInvalidOutput) {
 			return
 		}
@@ -576,4 +668,12 @@ func (r *runner) logTail(id string) (string, error) {
 		}
 	}
 	return "", nil
+}
+
+func workerIDs(t protocol.Task) []string {
+	ids := make([]string, len(t.Workers))
+	for i, worker := range t.Workers {
+		ids[i] = worker.ID
+	}
+	return ids
 }

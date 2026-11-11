@@ -135,6 +135,9 @@ func TestRunCopyUsesOriginalSnapshotAndCreatesANewTask(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	if _, err = p.stopRun(str(source["id"]), "now"); err != nil {
+		t.Fatal(err)
+	}
 	draft["copy_environment_snapshot"] = true // Explicit historical replay remains supported.
 	copy, created, err := p.createRun(draft, "copy-new")
 	if err != nil || !created {
@@ -153,6 +156,9 @@ func TestRunCopyUsesOriginalSnapshotAndCreatesANewTask(t *testing.T) {
 	again, created, err := p.createRun(draft, "copy-new")
 	if err != nil || created || again["id"] != copy["id"] {
 		t.Fatal("copy retry not idempotent", err)
+	}
+	if _, err = p.stopRun(str(copy["id"]), "now"); err != nil {
+		t.Fatal(err)
 	}
 	draft["copy_environment_snapshot"] = false
 	fresh, _, err := p.createRun(draft, "copy-fresh-env")

@@ -107,6 +107,9 @@ func TestCookieAccountFrozenDispatchAndCopy(t *testing.T) {
 	if err != nil || created || again["id"] != run["id"] {
 		t.Fatal("idempotent retry failed", err)
 	}
+	if _, err = p.stopRun(str(run["id"]), "now"); err != nil {
+		t.Fatal(err)
+	}
 	bad := clone(payload)
 	bad["properties"] = Obj{"cookie_account.actor.token": "orphan"}
 	if _, _, err = p.createRun(bad, "invalid-cookie-role"); err == nil {

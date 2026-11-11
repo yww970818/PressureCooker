@@ -7,6 +7,6 @@ import (
 	"syscall"
 )
 
-func protectParent() error                 { return errors.New("execution isolation requires Linux") }
-func childIdentity(a *syscall.SysProcAttr) {}
-func reapEngine() error                    { return errors.New("process isolation requires Linux") }
+func protectParent() error                             { return errors.New("execution isolation requires Linux") }
+func childIdentity(a *syscall.SysProcAttr, ids ...int) {}
+func reapEngine(ids ...int) error                      { return errors.New("process isolation requires Linux") }

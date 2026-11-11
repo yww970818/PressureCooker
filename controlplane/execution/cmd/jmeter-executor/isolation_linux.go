@@ -23,14 +23,22 @@ func protectParent() error {
 	}
 	return unix.Prctl(unix.PR_SET_DUMPABLE, 0, 0, 0, 0)
 }
-func childIdentity(a *syscall.SysProcAttr) {
-	a.Credential = &syscall.Credential{Uid: engineUID, Gid: engineGID, Groups: []uint32{}}
+func childIdentity(a *syscall.SysProcAttr, ids ...int) {
+	uid := engineGroup(ids)
+	groups := []uint32{}
+	if uid != engineUID {
+		// Shared JMeter/RMI configuration remains readable through the legacy
+		// group, while each task directory is granted only to its private group.
+		groups = append(groups, engineGID)
+	}
+	a.Credential = &syscall.Credential{Uid: uint32(uid), Gid: uint32(uid), Groups: groups}
 }
 
 // A JSR223/OS sampler can detach from the JVM's process group. Sweep only the
-// engine account in this supervisor's private PID namespace after each JVM
+// selected engine account in this supervisor's private PID namespace after each JVM
 // exit and before admitting a replacement. Pidfds protect against PID reuse.
-func reapEngine() error {
+func reapEngine(ids ...int) error {
+	uidToReap := engineGroup(ids)
 	if os.Getpid() != 1 {
 		return errors.New("refusing process cleanup outside the executor PID namespace")
 	}
@@ -76,7 +84,7 @@ func reapEngine() error {
 					ppid = f[1]
 				}
 			}
-			if uid == strconv.Itoa(engineUID) {
+			if uid == strconv.Itoa(uidToReap) {
 				if state == "Z" {
 					if ppid == "1" {
 						var st syscall.WaitStatus

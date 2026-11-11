@@ -218,6 +218,9 @@ func TestMySQLEnvironmentRandomTaskSnapshotAndBindings(t *testing.T) {
 	if err != nil || created || retried["id"] != run["id"] {
 		t.Fatal("idempotent retry regenerated snapshot", err)
 	}
+	if _, err = p.stopRun(str(run["id"]), "now"); err != nil {
+		t.Fatal(err)
+	}
 	fresh, _, err := p.createRun(payload, "random-snapshot-new")
 	if err != nil {
 		t.Fatal(err)
@@ -227,6 +230,9 @@ func TestMySQLEnvironmentRandomTaskSnapshotAndBindings(t *testing.T) {
 		t.Fatal("new task reused frozen random identity", err)
 	}
 	copyDraft := runCopyDraft(internal)
+	if _, err = p.stopRun(str(fresh["id"]), "now"); err != nil {
+		t.Fatal(err)
+	}
 	copied, _, err := p.createRun(copyDraft, "random-snapshot-copy")
 	if err != nil {
 		t.Fatal("create task copy", err)

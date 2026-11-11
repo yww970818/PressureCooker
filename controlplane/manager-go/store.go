@@ -589,6 +589,9 @@ func (p *Platform) createRun(payload Obj, key string) (Obj, bool, error) {
 		if e != nil {
 			return e
 		}
+		if e = requireWorkersUnoccupied(tx, workers, "", true); e != nil {
+			return e
+		}
 		copyClusterCallback(source, cluster, clusterSnapshot)
 		if environmentID == "" && plan["requires_project_environment"] != false {
 			return api(400, "environment_required", "该脚本须明确选择项目环境")

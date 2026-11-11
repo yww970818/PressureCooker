@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"syscall"
 	"time"
@@ -34,10 +35,10 @@ func launch(c config, argv []string, dir, console string) (*process, error) {
 	cmd := exec.Command(c.java, argv...)
 	cmd.SysProcAttr = childAttrs()
 	if c.isolated {
-		if e = reapEngine(); e != nil {
+		if e = reapEngine(c.engineUID()); e != nil {
 			return nil, e
 		}
-		childIdentity(cmd.SysProcAttr)
+		childIdentity(cmd.SysProcAttr, c.engineUID())
 		cmd.Env = []string{"PATH=/usr/bin:/bin", "LANG=C.UTF-8", "HOME=/tmp", "TMPDIR=/tmp"}
 	}
 	cmd.Dir = dir
@@ -53,7 +54,7 @@ func launch(c config, argv []string, dir, console string) (*process, error) {
 		// its JMeter leader, including when that leader exits on SIGTERM.
 		_ = syscall.Kill(-cmd.Process.Pid, syscall.SIGKILL)
 		if c.isolated {
-			if e := reapEngine(); e != nil {
+			if e := reapEngine(c.engineUID()); e != nil {
 				p.err = e
 			}
 		}
@@ -118,7 +119,7 @@ func (s *service) runProcess(ctx context.Context, t protocol.Task, raw string) (
 			runErr = e
 		}
 	}()
-	args := append(s.c.baseArgs(), "-q", f, "-G"+f, "-n", "-t", filepath.Join(base, "plan.jmx"), "-R", strings.Join(hosts, ","), "-l", filepath.Join(out, "results.jtl"), "-j", filepath.Join(out, "jmeter.log"), "-Jjmeterengine.nongui.port=4445", "-Jjmeterengine.nongui.maxport=4445", "-Jjmeterengine.remote.system.exit=false")
+	args := append(s.c.baseArgs(), "-q", f, "-G"+f, "-n", "-t", filepath.Join(base, "plan.jmx"), "-R", strings.Join(hosts, ","), "-l", filepath.Join(out, "results.jtl"), "-j", filepath.Join(out, "jmeter.log"), "-Jjmeterengine.nongui.port="+strconv.Itoa(s.c.stopPort()), "-Jjmeterengine.nongui.maxport="+strconv.Itoa(s.c.stopPort()), "-Jjmeterengine.remote.system.exit=false")
 	if e := ctx.Err(); e != nil {
 		return -1, e
 	}

@@ -189,7 +189,9 @@ func TestMySQLWorkspaceScopesBeforeLimitAndSchedulerRemainsGlobal(t *testing.T) 
 	if e != nil {
 		t.Fatal(e)
 	}
-	runFixture(t, scoped, ownPlan, "other-global")
+	if run, created, e := scoped.createRun(Obj{"cluster_id": clusterID("controller-a"), "environment_id": fixtureEnvironmentID(t, scoped), "name": "run", "plan_id": ownPlan["id"], "workers": []any{"worker-2"}, "properties": Obj{}, "notes": ""}, "other-global"); e != nil || !created {
+		t.Fatal(run, created, e)
+	}
 	all, e := p.runList(nil)
 	if e != nil || len(all) != 2 {
 		t.Fatal("scheduler lost project runs", all, e)
@@ -445,7 +447,7 @@ func TestMySQLProjectsIsolationAndArchive(t *testing.T) {
 	if c, v := call(bid, "POST", "/api/runs/"+str(run["id"])+"/stop", Obj{}); c != 404 {
 		t.Fatal("cross stop", c, v)
 	}
-	code, defaultRun := call(defaultProjectID, "POST", "/api/runs", Obj{"cluster_id": clusterID("controller-a"), "environment_id": fixtureEnvironmentID(t, p), "name": "默认任务", "plan_id": defaultPlan["id"], "workers": []any{"worker-1"}})
+	code, defaultRun := call(defaultProjectID, "POST", "/api/runs", Obj{"cluster_id": clusterID("controller-a"), "environment_id": fixtureEnvironmentID(t, p), "name": "默认任务", "plan_id": defaultPlan["id"], "workers": []any{"worker-2"}})
 	if code != 201 || defaultRun["id"] == run["id"] {
 		t.Fatal("idempotency not isolated", code, defaultRun)
 	}

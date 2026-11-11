@@ -99,6 +99,13 @@ func (p *Platform) runnerClaim(ctx context.Context, runner string, body Obj) (Ob
 		if e = runnerIdentity(run, runner, body); e != nil {
 			return e
 		}
+		owned, e := q.OwnsWorkers(ctx, lease, stringList(run["workers"])...)
+		if e != nil {
+			return api(503, "lease_unavailable", "Execution lease cannot be verified")
+		}
+		if !owned {
+			return api(409, "lease_not_owned", "Execution lease does not cover the selected workers")
+		}
 		result["status"] = run["status"]
 		result["started_at"] = run["started_at"]
 		result["previous_lease_token"] = run["runner_lease_token"]
@@ -106,12 +113,10 @@ func (p *Platform) runnerClaim(ctx context.Context, runner string, body Obj) (Ob
 		if str(run["status"]) != "QUEUED" {
 			return nil
 		}
-		var busy int
-		if e = tx.QueryRow("SELECT COUNT(*) FROM runs WHERE id<>? AND JSON_UNQUOTE(JSON_EXTRACT(data,'$.execution_mode'))='redis' AND status IN ('PREPARING','RUNNING','STOPPING','RECOVERING')", id).Scan(&busy); e != nil {
+		// Older installations may already have overlapping queued runs. The
+		// worker lease serializes them; only physical owners block a claim.
+		if e = requireWorkersUnoccupied(tx, arr(run["workers"]), id, false); e != nil {
 			return e
-		}
-		if busy > 0 {
-			return api(409, "execution_busy", "A previous execution still owns workers")
 		}
 		started := str(body["started_at"])
 		if started == "" {

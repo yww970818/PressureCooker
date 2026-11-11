@@ -85,6 +85,9 @@ func TestMySQLAutomaticTaskFreezeRetryCopyAndCollectionClock(t *testing.T) {
 	if obj(draft["properties"])["task_time"] != "{{$auto.timestamp_ms}}" {
 		t.Fatal("copy did not restore authored explicit auto rule")
 	}
+	if _, err = firstScope.stopRun(str(run["id"]), "now"); err != nil {
+		t.Fatal(err)
+	}
 	copy, _, err := secondScope.createRun(draft, "automatic-copy")
 	if err != nil {
 		t.Fatal(err)
@@ -94,6 +97,9 @@ func TestMySQLAutomaticTaskFreezeRetryCopyAndCollectionClock(t *testing.T) {
 		t.Fatal("normal copy reused old operation")
 	}
 	draft["copy_environment_snapshot"] = true
+	if _, err = secondScope.stopRun(str(copy["id"]), "now"); err != nil {
+		t.Fatal(err)
+	}
 	historical, _, err := secondScope.createRun(draft, "automatic-historical-copy")
 	if err != nil {
 		t.Fatal(err)
@@ -174,6 +180,9 @@ func TestMySQLManagedArgumentsFreezeMaskBudgetAndCopy(t *testing.T) {
 		t.Fatal("dispatch carried unresolved/changed generators")
 	}
 	second := autoTaskScope(p, "203.0.113.4", 1794212349999)
+	if _, err = first.stopRun(str(run["id"]), "now"); err != nil {
+		t.Fatal(err)
+	}
 	copy, _, err := second.createRun(runCopyDraft(internal), "managed-copy")
 	if err != nil {
 		t.Fatal(err)
@@ -188,6 +197,9 @@ func TestMySQLManagedArgumentsFreezeMaskBudgetAndCopy(t *testing.T) {
 	status, code, _ := requestFailure(err)
 	if status != 413 || code != "task_payload_too_large" {
 		t.Fatal("scalar opaque value bypassed normal signed task budget", status, code, err)
+	}
+	if _, err = second.stopRun(str(copy["id"]), "now"); err != nil {
+		t.Fatal(err)
 	}
 	bad := clone(payload)
 	obj(bad["properties"])[ipKey] = "forged"

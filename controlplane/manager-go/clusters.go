@@ -250,6 +250,10 @@ func (p *Platform) attachClusterStatusQ(q clusterQueryer, controllers, workers [
 	if e != nil {
 		return nil, nil, e
 	}
+	occupied, e := occupiedWorkerIDsQ(q, "", false, true)
+	if e != nil {
+		return nil, nil, e
+	}
 	cs, ws := map[string]Obj{}, map[string]Obj{}
 	counts := map[string]int{}
 	for _, v := range controllers {
@@ -285,6 +289,8 @@ func (p *Platform) attachClusterStatusQ(q clusterQueryer, controllers, workers [
 			if status == nil {
 				status = unreachableNode(id, "worker")
 			}
+			status = clone(status)
+			status["occupied"] = occupied[id]
 			members = append(members, status)
 			if counts[id] > 1 {
 				shared = append(shared, id)

@@ -305,6 +305,9 @@ func TestRunnerManagedDatasetsOwnershipSnapshotAndSoftDelete(t *testing.T) {
 	if e != nil {
 		t.Fatal(e)
 	}
+	if _, e = p.stopRun(str(run["id"]), "now"); e != nil {
+		t.Fatal(e)
+	}
 	if _, _, e = p.createRun(payload, "newfiles"); e == nil {
 		t.Fatal("deleted file selected")
 	}

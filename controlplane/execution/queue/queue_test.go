@@ -19,7 +19,11 @@ func TestIsolatedRedisLeaseStreamReclaimAndAck(t *testing.T) {
 	if os.Getenv("JMETER_EXECUTION_IT") != "1" {
 		t.Skip("enable isolated Redis integration")
 	}
-	b, e := os.ReadFile("../../../runtime/local-secrets/redis-password")
+	passwordFile := os.Getenv("JMETER_REDIS_PASSWORD_FILE")
+	if passwordFile == "" {
+		passwordFile = "../../../runtime/local-secrets/redis-password"
+	}
+	b, e := os.ReadFile(passwordFile)
 	if e != nil {
 		t.Fatal(e)
 	}

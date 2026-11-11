@@ -12,6 +12,41 @@ function setup(fail=false){const writes=[];vi.stubGlobal('fetch',async(url,init)
 async function ready(){await screen.findByRole('option',{name:/脚本.jmx/});for(const [label,value]of [['任务名称','新任务'],['脚本版本','p'],['执行环境','e'],['执行集群','c']])await fireEvent.update(screen.getByLabelText(label),value);}
 async function custom(index,key,value){await fireEvent.click(screen.getByRole('button',{name:'添加自定义属性'}));await fireEvent.update(screen.getByLabelText(`第 ${index} 个自定义属性名称`),key);await fireEvent.update(screen.getByLabelText(`第 ${index} 个自定义属性值`),value);}
 afterEach(()=>{cleanup();setProjectId('project-default');vi.unstubAllGlobals();});
+it('excludes occupied workers from new selections and allows a task on the remaining worker',async()=>{
+ const writes=setup(),fetch=globalThis.fetch;
+ vi.stubGlobal('fetch',async(url,init)=>url.endsWith('/cluster')?response({clusters:[{id:'c',name:'集群',registered:true,worker_ids:['w1','w2'],workers:[{id:'w1',occupied:true},{id:'w2',occupied:false}]}]}):fetch(url,init));
+ render(CreateRun);await ready();
+ expect(screen.getByLabelText('w1').disabled).toBe(true);
+ expect(screen.getByLabelText('w1').checked).toBe(false);
+ expect(screen.getByLabelText('w2').checked).toBe(true);
+ await screen.findByText('此脚本没有托管 CSV 数据节点。');
+ await fireEvent.click(screen.getByRole('button',{name:'创建并排队执行'}));
+ await waitFor(()=>expect(writes).toHaveLength(1));expect(writes[0].body.workers).toEqual(['w2']);
+});
+it('blocks a copied task with an occupied worker until the user removes it',async()=>{
+ const writes=setup(),fetch=globalThis.fetch,config=copiedConfig();config.workers=['w1','w2'];
+ vi.stubGlobal('fetch',async(url,init)=>url.endsWith('/cluster')?response({clusters:[{id:'c',name:'集群',registered:true,worker_ids:['w1','w2'],workers:[{id:'w1',occupied:true},{id:'w2',occupied:false}]}]}):fetch(url,init));
+ render(CreateRun,{props:{initialConfig:config}});await screen.findByRole('option',{name:/脚本.jmx/});
+ const submit=screen.getByRole('button',{name:'创建并排队执行'});
+ expect(submit.disabled).toBe(true);expect(screen.getByLabelText('w1').disabled).toBe(false);
+ await fireEvent.submit(document.getElementById('create-run'));expect(writes).toHaveLength(0);
+ expect(await screen.findByText(/执行节点 w1 已被占用/)).toBeTruthy();
+ await fireEvent.click(screen.getByLabelText('w1'));await fireEvent.click(submit);
+ await waitFor(()=>expect(writes).toHaveLength(1));expect(writes[0].body.workers).toEqual(['w2']);
+});
+it('refreshes occupancy after the server rejects a worker taken during submission',async()=>{
+ const writes=setup(),fetch=globalThis.fetch;let occupied=false,reads=0;
+ vi.stubGlobal('fetch',async(url,init)=>{
+  if(url.endsWith('/cluster')){reads++;return response({clusters:[{id:'c',name:'集群',registered:true,worker_ids:['w1','w2'],workers:[{id:'w1',occupied},{id:'w2',occupied:false}]}]});}
+  if(url.endsWith('/runs')&&init.method==='POST'){occupied=true;return response({error:{code:'worker_busy',message:'执行节点 w1 已被占用'}},409);}
+  return fetch(url,init);
+ });
+ render(CreateRun);await ready();await screen.findByText('此脚本没有托管 CSV 数据节点。');
+ await fireEvent.click(screen.getByRole('button',{name:'创建并排队执行'}));
+ await waitFor(()=>expect(reads).toBe(2));
+ await waitFor(()=>expect(screen.getByRole('button',{name:'创建并排队执行'}).disabled).toBe(true));
+ expect(screen.getByLabelText('w1').checked).toBe(true);expect(screen.getByLabelText('w1').disabled).toBe(false);expect(writes).toHaveLength(0);
+});
 it('allows omitting the task project environment only for an explicitly independent published plan',async()=>{
  const writes=setup();const fetch=globalThis.fetch;vi.stubGlobal('fetch',async(url,init)=>String(url).split('?')[0]==='/api/plans'&&init.method==='GET'?response({items:[{id:'p',name:'脚本.jmx',requires_project_environment:false}]}):fetch(url,init));
  render(CreateRun);await screen.findByRole('option',{name:/脚本.jmx/});

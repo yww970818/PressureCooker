@@ -4,9 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"sort"
 	"time"
 
-	"github.com/redis/go-redis/v9"
 	"pressurecooker/execution/protocol"
 )
 
@@ -95,12 +95,20 @@ func (c *Client) NodeReports(ctx context.Context, ids []string) (map[string]Stor
 	return out, nil
 }
 func (c *Client) NodeObservationEpoch(ctx context.Context) (string, error) {
-	token, err := c.db.Get(ctx, c.prefix+":lease").Result()
-	if errors.Is(err, redis.Nil) {
-		return protocol.NodeObservationEpoch(""), nil
-	}
+	tokens, err := c.leaseOperation(ctx, "epoch", "", nil).StringSlice()
 	if err != nil {
 		return "", err
 	}
-	return protocol.NodeObservationEpoch(token), nil
+	if len(tokens) == 0 {
+		return protocol.NodeObservationEpoch(""), nil
+	}
+	if len(tokens) == 1 {
+		return protocol.NodeObservationEpoch(tokens[0]), nil
+	}
+	sort.Strings(tokens)
+	encoded, err := json.Marshal(tokens)
+	if err != nil {
+		return "", err
+	}
+	return protocol.NodeObservationEpoch(string(encoded)), nil
 }

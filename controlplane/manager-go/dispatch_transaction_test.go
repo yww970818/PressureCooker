@@ -272,6 +272,9 @@ func TestDispatchUnconfirmedPublishRecoversAndInvalidPayloadFailsSafely(t *testi
 	if err = p.DB.QueryRow("SELECT status,attempts FROM task_dispatches WHERE id=?", id).Scan(&status, &attempts); err != nil || status != "PUBLISHED" || attempts != 2 {
 		t.Fatalf("recovered confirmation: %s %d %v", status, attempts, err)
 	}
+	if _, err = p.stopRun(id, "now"); err != nil {
+		t.Fatal(err)
+	}
 	invalid, _, err := p.createRun(Obj{"name": "invalid snapshot", "plan_id": plan["id"], "environment_id": environment["id"], "cluster_id": clusterID("controller-a")}, "invalid-snapshot")
 	if err != nil {
 		t.Fatal(err)

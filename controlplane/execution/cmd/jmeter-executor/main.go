@@ -224,6 +224,15 @@ func run() error {
 			s.worker.rec.Ready = false
 			start(s.worker.loop)
 		} else {
+			// No task is live before the consumer starts. Reap the legacy Core
+			// identity and every reserved slot left by a previous supervisor.
+			if s.c.isolated {
+				for slot := 0; slot <= maxCoreRuntimeSlots; slot++ {
+					if e = reapEngine(engineUID + slot); e != nil {
+						return e
+					}
+				}
+			}
 			s.runner = &runner{s: s}
 			if e = directory(filepath.Join(s.c.state, "jobs")); e != nil {
 				return e

@@ -107,24 +107,6 @@ func (c *Client) Reclaim(ctx context.Context, cluster, consumer, cursor string, 
 func (c *Client) Ack(ctx context.Context, cluster, id string) error {
 	return c.db.Eval(ctx, `redis.call('XACK',KEYS[1],ARGV[1],ARGV[2]); return redis.call('XDEL',KEYS[1],ARGV[2])`, []string{c.stream(cluster)}, Group, id).Err()
 }
-func (c *Client) Acquire(ctx context.Context, token string) (bool, error) {
-	return c.db.SetNX(ctx, c.prefix+":lease", token, LeaseTTL).Result()
-}
-func (c *Client) LeaseOwned(ctx context.Context, token string) (bool, error) {
-	v, e := c.db.Get(ctx, c.prefix+":lease").Result()
-	if errors.Is(e, redis.Nil) {
-		return false, nil
-	}
-	return e == nil && v == token, e
-}
-func (c *Client) Renew(ctx context.Context, token string) (bool, error) {
-	v, e := c.db.Eval(ctx, `if redis.call('get',KEYS[1])==ARGV[1] then return redis.call('pexpire',KEYS[1],ARGV[2]) end return 0`, []string{c.prefix + ":lease"}, token, LeaseTTL.Milliseconds()).Int()
-	return v == 1, e
-}
-func (c *Client) Release(ctx context.Context, token string) error {
-	_, e := c.db.Eval(ctx, `if redis.call('get',KEYS[1])==ARGV[1] then return redis.call('del',KEYS[1]) end return 0`, []string{c.prefix + ":lease"}, token).Result()
-	return e
-}
 func Token(runner, task, attempt, nonce string) string {
 	return fmt.Sprintf("%s/%s/%s/%s", runner, task, attempt, nonce)
 }

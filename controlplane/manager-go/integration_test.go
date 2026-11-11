@@ -193,6 +193,9 @@ func TestMySQLAuthAPIIdempotency(t *testing.T) {
 	if e != nil || created || again["id"] != first["id"] {
 		t.Fatal(again, created, e)
 	}
+	if _, e = p.stopRun(str(first["id"]), "now"); e != nil {
+		t.Fatal(e)
+	}
 	// SQLite TEXT keys retain trailing spaces; MySQL must compare their exact UTF-8 bytes.
 	keyRuns := map[string]string{}
 	for _, exactKey := range []string{"exact", "exact ", "exact  ", "中文", "中文 "} {
@@ -201,6 +204,9 @@ func TestMySQLAuthAPIIdempotency(t *testing.T) {
 			t.Fatalf("distinct key %q collided: %v %v", exactKey, created, e)
 		}
 		keyRuns[exactKey] = str(r["id"])
+		if _, e = p.stopRun(str(r["id"]), "now"); e != nil {
+			t.Fatal(e)
+		}
 	}
 	unique := map[string]bool{}
 	for exactKey, id := range keyRuns {

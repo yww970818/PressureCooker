@@ -11,9 +11,25 @@ import (
 const engineUID = 10001
 const engineGID = 10001
 
+// Worker JVMs retain the existing engine account. Each live Core task gets a
+// separate account/group and fixed UDP stop port from this bounded pool.
+const maxCoreRuntimeSlots = 64
+
+func (c config) engineUID() int { return engineUID + c.runtimeSlot }
+func (c config) stopPort() int  { return 4445 + c.runtimeSlot }
+func reservedEngineID(id uint32) bool {
+	return id >= engineUID && id <= engineUID+maxCoreRuntimeSlots
+}
+func engineGroup(groups []int) int {
+	if len(groups) != 0 {
+		return groups[0]
+	}
+	return engineGID
+}
+
 // The engine can traverse explicitly granted directories but cannot replace
 // their entries. Root opens only its own files for publishing and delivery.
-func grant(p string, dir bool, mode os.FileMode) error {
+func grant(p string, dir bool, mode os.FileMode, groups ...int) error {
 	real, e := filepath.EvalSymlinks(p)
 	if e != nil {
 		return e
@@ -28,22 +44,22 @@ func grant(p string, dir bool, mode os.FileMode) error {
 	if info.IsDir() != dir || !dir && !info.Mode().IsRegular() {
 		return errors.New("invalid engine path type")
 	}
-	if e = os.Chown(p, 0, engineGID); e != nil {
+	if e = os.Chown(p, 0, engineGroup(groups)); e != nil {
 		return e
 	}
 	return os.Chmod(p, mode)
 }
-func engineDirectories(dir, root string) error {
+func engineDirectories(dir, root string, groups ...int) error {
 	rel, e := filepath.Rel(root, dir)
 	if e != nil || !filepath.IsLocal(rel) {
 		return errors.New("engine path outside task root")
 	}
 	if dir != root {
-		if e = engineDirectories(filepath.Dir(dir), root); e != nil {
+		if e = engineDirectories(filepath.Dir(dir), root, groups...); e != nil {
 			return e
 		}
 	}
-	return grant(dir, true, 0710)
+	return grant(dir, true, 0710, groups...)
 }
 func (c config) protectPaths() error {
 	// All ancestors remain controlled by the supervisor or trusted host operator.
@@ -57,7 +73,7 @@ func (c config) protectPaths() error {
 				return e
 			}
 			owner, ok := st.Sys().(*syscall.Stat_t)
-			if !ok || !st.IsDir() || owner.Uid == engineUID || st.Mode().Perm()&0002 != 0 || owner.Gid == engineGID && st.Mode().Perm()&0020 != 0 {
+			if !ok || !st.IsDir() || reservedEngineID(owner.Uid) || st.Mode().Perm()&0002 != 0 || reservedEngineID(owner.Gid) && st.Mode().Perm()&0020 != 0 {
 				return errors.New("engine-writable executor directory")
 			}
 		}
@@ -86,16 +102,16 @@ func (c config) protectPaths() error {
 }
 func privateSecret(st os.FileInfo) bool {
 	v, ok := st.Sys().(*syscall.Stat_t)
-	return ok && v.Uid != engineUID && st.Mode().Perm()&0077 == 0 && st.Mode().IsRegular()
+	return ok && !reservedEngineID(v.Uid) && st.Mode().Perm()&0077 == 0 && st.Mode().IsRegular()
 }
 func (s *service) grantInput(id, p string) error {
 	if !s.c.isolated {
 		return nil
 	}
-	if e := engineDirectories(filepath.Dir(p), s.taskDir(id)); e != nil {
+	if e := engineDirectories(filepath.Dir(p), s.taskDir(id), s.c.engineUID()); e != nil {
 		return e
 	}
-	return grant(p, false, 0640)
+	return grant(p, false, 0640, s.c.engineUID())
 }
 func (s *service) seal(id string) error {
 	if !s.c.isolated {
@@ -120,7 +136,7 @@ func (s *service) outputDirectory(id, raw string) (string, error) {
 	}
 	// JMeter writes its own CSV header only when it creates a new results file.
 	// The parent of this writable directory is immutable to the engine.
-	return dir, grant(dir, true, 0730)
+	return dir, grant(dir, true, 0730, s.c.engineUID())
 }
 func transferOutput(src, dst string) error {
 	if e := os.Rename(src, dst); e == nil {
@@ -155,6 +171,9 @@ func transferOutput(src, dst string) error {
 	return os.Remove(src)
 }
 func (s *service) collectOutputs(id, raw string) error {
+	return s.collectOutputsAs(id, raw, s.c.engineUID())
+}
+func (s *service) collectOutputsAs(id, raw string, uid int) error {
 	if !s.c.isolated {
 		return nil
 	}
@@ -179,7 +198,7 @@ func (s *service) collectOutputs(id, raw string) error {
 			return e
 		}
 		owner, ok := st.Sys().(*syscall.Stat_t)
-		if !ok || !st.Mode().IsRegular() || owner.Uid != engineUID || owner.Nlink != 1 {
+		if !ok || !st.Mode().IsRegular() || owner.Uid != uint32(uid) || owner.Nlink != 1 {
 			invalid = true
 			if e = os.RemoveAll(src); e != nil {
 				return e

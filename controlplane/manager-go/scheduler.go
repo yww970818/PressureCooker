@@ -10,11 +10,12 @@ import (
 )
 
 type Scheduler struct {
-	P      *Platform
-	ID     string
-	leader bool
-	lock   *os.File
-	closed bool
+	P              *Platform
+	ID             string
+	leader         bool
+	lock           *os.File
+	closed         bool
+	recoveryCursor string
 }
 
 func newScheduler(p *Platform, id string) *Scheduler {

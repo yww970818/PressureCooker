@@ -26,7 +26,7 @@ PressureCooker 是独立的通用压测管理平台，提供项目、环境、�
 | [controlplane/mcp-go](controlplane/mcp-go) | 项目作用域的 MCP 工具与官方创作运行时适配 |
 | [tools/platform-ops](tools/platform-ops/README.md) | 通用主机运维与离线文件校验 |
 
-MySQL 保存元数据及加密的项目内容，Redis Streams 传递任务，MinIO 保存发布脚本、数据集和原始结果。Compose 默认拓扑为两个 PressureCooker-Core、六个 worker，显式初始分配为 2/4；平台接受部署清单中的通用节点ID，单批最多64个节点。执行节点受全局租约约束，平台全局一次执行一个批次，每个所选节点执行完整 JMX。
+MySQL 保存元数据及加密的项目内容，Redis Streams 传递任务，MinIO 保存发布脚本、数据集和原始结果。Compose 默认拓扑为两个 PressureCooker-Core、六个 worker，显式初始分配为 2/4；平台接受部署清单中的通用节点ID，单批最多64个节点。平台支持多批任务并行执行，每个所选节点执行完整 JMX。worker 从任务提交至执行与清理完成期间独占；若所选 worker 已被排队或运行中的任务占用，提交返回 `409/worker_busy`，须改选空闲节点或等待释放。
 
 PressureCooker-Core 连接 Redis 后主动注册，每5秒汇总自身和 worker 的状态、机器信息及队列连通性上报。管理端只读取上报缓存，20秒未更新即标记超时，不主动探测节点。内部 controller ID 保持兼容，页面使用 PressureCooker-Core 名称。注册与故障恢复链路见[节点注册与状态](docs/节点注册与状态.md)。
 

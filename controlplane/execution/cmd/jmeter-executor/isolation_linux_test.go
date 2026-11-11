@@ -220,3 +220,120 @@ assert Files.readString(Path.of("/fixture/rmi/rmi_keystore.jks")).contains("dumm
 def detached=new ProcessBuilder("/usr/bin/setsid","/bin/sleep","90").start()
 SampleResult.setResponseMessage("isolation-ok-"+detached.pid())
 ]]></stringProp></JSR223Sampler><hashTree/></hashTree></hashTree></hashTree></jmeterTestPlan>`
+
+// Run as PID 1 in a disposable --network none Linux container. No JMeter or
+// business assets are needed: shell children exercise the same launch/reaper
+// and filesystem grants used by Core JVMs.
+func TestLinuxConcurrentCoreRuntimeIsolation(t *testing.T) {
+	if os.Getenv("JMETER_DUMMY_CORE_ISOLATION_TEST") != "1" {
+		t.Skip("requires disposable Linux Core isolation fixture")
+	}
+	if err := protectParent(); err != nil {
+		t.Fatal(err)
+	}
+	root := "/fixture/parallel"
+	base := config{isolated: true, work: root, results: root + "/results", state: root + "/state", java: "/bin/sh"}
+	for _, dir := range []string{root, base.results, base.state, filepath.Join(root, "tasks")} {
+		if err := directory(dir); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := os.Chmod(root, 0755); err != nil {
+		t.Fatal(err)
+	}
+	if err := base.protectPaths(); err != nil {
+		t.Fatal(err)
+	}
+	shared := filepath.Join(root, "common.properties")
+	if err := writeFile(shared, []byte("dummy shared config\n")); err != nil {
+		t.Fatal(err)
+	}
+	if err := grant(shared, false, 0440); err != nil {
+		t.Fatal(err)
+	}
+	services := []*service{{c: base}, {c: base}}
+	for i, s := range services {
+		s.c.runtimeSlot = i + 1
+		id := []string{"first", "second"}[i]
+		if err := writeFile(filepath.Join(s.taskDir(id), "task.properties"), []byte("dummy own config\n")); err != nil {
+			t.Fatal(err)
+		}
+		if err := s.grantInput(id, filepath.Join(s.taskDir(id), "task.properties")); err != nil {
+			t.Fatal(err)
+		}
+	}
+	var children []*process
+	for i, s := range services {
+		id := []string{"first", "second"}[i]
+		peer := []string{"second", "first"}[i]
+		raw := filepath.Join(base.results, id)
+		if err := directory(raw); err != nil {
+			t.Fatal(err)
+		}
+		out, err := s.outputDirectory(id, raw)
+		if err != nil {
+			t.Fatal(err)
+		}
+		// Each process can read shared config and its own input. Its peer's
+		// input/output are inaccessible even though both JVMs are running.
+		script := `set -eu
+cat "$1" >/dev/null
+cat "$2" >/dev/null
+if cat "$3" >/dev/null 2>&1; then exit 21; fi
+printf 'ready\n' > "$4"
+setsid sleep 90 &
+printf '%s\n' "$!" > "$5"
+while :; do sleep 1; done`
+		args := []string{"-c", script, "probe", shared, filepath.Join(s.taskDir(id), "task.properties"), filepath.Join(s.taskDir(peer), "task.properties"), filepath.Join(out, "results.jtl"), filepath.Join(out, "jmeter.log")}
+		p, err := launch(s.c, args, s.taskDir(id), filepath.Join(raw, "console.log"))
+		if err != nil {
+			t.Fatal(err)
+		}
+		defer p.kill()
+		children = append(children, p)
+	}
+	pids := []int{}
+	for i, s := range services {
+		id := []string{"first", "second"}[i]
+		pidFile := filepath.Join(s.taskDir(id), "jvm-output", "jmeter.log")
+		deadline := time.Now().Add(5 * time.Second)
+		for {
+			raw, err := os.ReadFile(pidFile)
+			pid, parseErr := strconv.Atoi(strings.TrimSpace(string(raw)))
+			if err == nil && parseErr == nil && pid > 1 {
+				pids = append(pids, pid)
+				break
+			}
+			if !children[i].alive() || time.Now().After(deadline) {
+				log, _ := os.ReadFile(filepath.Join(base.results, id, "console.log"))
+				t.Fatalf("isolated process failed to read only its granted inputs: %s", log)
+			}
+			time.Sleep(10 * time.Millisecond)
+		}
+	}
+	children[0].kill()
+	if _, err := os.Stat("/proc/" + strconv.Itoa(pids[0])); !os.IsNotExist(err) {
+		t.Fatal("first task left a detached descendant")
+	}
+	if !children[1].alive() {
+		t.Fatal("first task reaper killed the second task JVM")
+	}
+	if _, err := os.Stat("/proc/" + strconv.Itoa(pids[1])); err != nil {
+		t.Fatal("first task reaper killed the second task descendant")
+	}
+	if err := services[0].collectOutputs("first", filepath.Join(base.results, "first")); err != nil {
+		t.Fatal(err)
+	}
+	if err := services[0].seal("first"); err != nil {
+		t.Fatal(err)
+	}
+	// Recovery may choose a different free slot, but collection must validate
+	// files against the original journal identity rather than the new slot.
+	children[1].kill()
+	if err := services[0].collectOutputsAs("second", filepath.Join(base.results, "second"), 10003); err != nil {
+		t.Fatal("recovery rejected the original runtime's output", err)
+	}
+	if _, err := os.Stat("/proc/" + strconv.Itoa(pids[1])); !os.IsNotExist(err) {
+		t.Fatal("second task left a detached descendant")
+	}
+}

@@ -14,6 +14,7 @@ func (s *Scheduler) reconcileRedisRunsContext(ctx context.Context, runs []any) e
 	if grace <= 0 {
 		grace = 2 * queue.LeaseTTL
 	}
+	candidates := []Obj{}
 	for _, v := range runs {
 		run := obj(v)
 		if str(run["execution_mode"]) != "redis" || !tasks.Status(str(run["status"])).Physical() || str(run["runner_lease_token"]) == "" {
@@ -27,9 +28,25 @@ func (s *Scheduler) reconcileRedisRunsContext(ctx context.Context, runs []any) e
 		if e != nil || time.Since(at) < grace {
 			continue
 		}
-		return s.resolveRedisOwnerContext(ctx, run)
+		candidates = append(candidates, run)
 	}
-	return nil
+	if len(candidates) == 0 {
+		s.recoveryCursor = ""
+		return nil
+	}
+	next := 0
+	for i, run := range candidates {
+		if str(run["id"]) == s.recoveryCursor {
+			next = (i + 1) % len(candidates)
+			break
+		}
+	}
+	// Resolve at most one owner per tick, keeping its existing 12-second
+	// budget. Advance even on timeout so one unreachable worker group cannot
+	// indefinitely reserve unrelated groups behind it.
+	run := candidates[next]
+	s.recoveryCursor = str(run["id"])
+	return s.resolveRedisOwnerContext(ctx, run)
 }
 func (p *Platform) frozenRunWorkersContext(ctx context.Context, run Obj) ([]protocol.Worker, error) {
 	var workers []protocol.Worker
@@ -96,7 +113,7 @@ func (s *Scheduler) resolveRedisOwnerContext(parent context.Context, run Obj) er
 	}
 	defer q.Close()
 	lease := queue.Token("manager-recovery", str(run["id"]), str(run["attempt_id"]), newID(""))
-	owned, e := q.Acquire(ctx, lease)
+	owned, e := q.Acquire(ctx, lease, stringList(run["workers"])...)
 	if e != nil || !owned {
 		return e
 	}
@@ -107,12 +124,16 @@ func (s *Scheduler) resolveRedisOwnerContext(parent context.Context, run Obj) er
 	}()
 	// A Core must probe again after learning this lease epoch from its ACK.
 	// Cross-machine observed_at clocks cannot establish that causal boundary.
-	observationEpoch := protocol.NodeObservationEpoch(lease)
+	observationEpoch := ""
 	ticker := time.NewTicker(250 * time.Millisecond)
 	defer ticker.Stop()
 	for {
 		owned, err := q.LeaseOwned(ctx, lease)
 		if err != nil || !owned {
+			return err
+		}
+		observationEpoch, err = q.NodeObservationEpoch(ctx)
+		if err != nil {
 			return err
 		}
 		_, statuses, err := s.P.nodeInventory(ctx)
@@ -146,6 +167,10 @@ func (s *Scheduler) resolveRedisOwnerContext(parent context.Context, run Obj) er
 		}
 		ok, e := q.Renew(ctx, lease)
 		if e != nil || !ok {
+			return e
+		}
+		currentEpoch, e := q.NodeObservationEpoch(ctx)
+		if e != nil || currentEpoch != observationEpoch {
 			return e
 		}
 		current, e = s.P.openStoredRun(current)

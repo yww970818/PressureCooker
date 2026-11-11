@@ -323,6 +323,9 @@ func TestMySQLCollectionEnvironmentResourceRuntimeSnapshot(t *testing.T) {
 	if _, e = p.workspaceUpdate("environments", str(parent["id"]), parent); e != nil {
 		t.Fatal(e)
 	}
+	if _, e = p.stopRun(str(run["id"]), "now"); e != nil {
+		t.Fatal(e)
+	}
 	next, _, e := p.createRun(payload, "collection-only-two")
 	if e != nil {
 		t.Fatal(e)
@@ -338,6 +341,9 @@ func TestMySQLCollectionEnvironmentResourceRuntimeSnapshot(t *testing.T) {
 	copied := clone(payload)
 	copied["copy_source_run_id"] = run["id"]
 	copied["copy_environment_snapshot"] = true
+	if _, e = p.stopRun(str(next["id"]), "now"); e != nil {
+		t.Fatal(e)
+	}
 	copyRun, _, e := p.createRun(copied, "collection-copy")
 	if e != nil {
 		t.Fatal(e)
@@ -347,6 +353,9 @@ func TestMySQLCollectionEnvironmentResourceRuntimeSnapshot(t *testing.T) {
 		t.Fatal("copy did not preserve frozen parent")
 	}
 	if _, e = p.workspaceDelete("environments", str(parent["id"])); e != nil {
+		t.Fatal(e)
+	}
+	if _, e = p.stopRun(str(copyRun["id"]), "now"); e != nil {
 		t.Fatal(e)
 	}
 	if _, _, e = p.createRun(payload, "collection-deleted-parent"); e == nil {

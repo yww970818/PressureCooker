@@ -180,7 +180,7 @@ func (w *worker) loop(ctx context.Context) {
 		w.mu.Unlock()
 		if ready && owner != nil {
 			leaseCtx, cancel := context.WithTimeout(ctx, 4*time.Second)
-			ok, e := w.s.q.LeaseOwned(leaseCtx, owner.LeaseToken)
+			ok, e := w.s.q.OwnsWorkers(leaseCtx, owner.LeaseToken, w.s.c.id)
 			cancel()
 			if !ok || e != nil {
 				ready = false
@@ -206,7 +206,7 @@ func (w *worker) prepare(ctx context.Context, a assignment) (int64, error) {
 	if !protocol.ValidID(a.TaskID) || !protocol.ValidID(a.AttemptID) || !protocol.ValidID(a.RunnerID) || !strings.HasPrefix(a.LeaseToken, a.RunnerID+"/"+a.TaskID+"/"+a.AttemptID+"/") {
 		return 0, errors.New("invalid owner")
 	}
-	ok, e := w.s.q.LeaseOwned(ctx, a.LeaseToken)
+	ok, e := w.s.q.OwnsWorkers(ctx, a.LeaseToken, w.s.c.id)
 	if e != nil || !ok {
 		return 0, errors.New("lease expired")
 	}
@@ -266,7 +266,7 @@ func (w *worker) prepare(ctx context.Context, a assignment) (int64, error) {
 			return 0, e
 		}
 	}
-	if ok, e = w.s.q.LeaseOwned(ctx, a.LeaseToken); !ok || e != nil {
+	if ok, e = w.s.q.OwnsWorkers(ctx, a.LeaseToken, w.s.c.id); !ok || e != nil {
 		return 0, errors.New("lease expired while preparing")
 	}
 	w.mu.Lock()

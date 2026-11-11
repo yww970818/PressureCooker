@@ -237,7 +237,7 @@ func TestRunnerJournalReclaimWorkerShardsAndRetry(t *testing.T) {
 	bin, _ := os.Executable()
 	token := "test-signing-credential"
 	const cluster = "cluster-test"
-	password, e := os.ReadFile("../../../../runtime/local-secrets/redis-password")
+	password, e := os.ReadFile(env("JMETER_REDIS_PASSWORD_FILE", "../../../../runtime/local-secrets/redis-password"))
 	if e != nil {
 		t.Fatal(e)
 	}

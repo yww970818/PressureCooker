@@ -222,6 +222,9 @@ func TestMySQLCollectionBindingRuntimeRevisionAndScopes(t *testing.T) {
 		if strings.Contains(raw, "secret-") || strings.Contains(raw, "local-0") {
 			t.Fatal("run scope snapshot not encrypted")
 		}
+		if _, e = p.stopRun(str(run["id"]), "now"); e != nil {
+			t.Fatal(e)
+		}
 	}
 	changed := clone(collections[0])
 	obj(obj(changed["client_state"])[collectionOverridesKey])[str(envB["id"])] = Obj{"variables": []any{Obj{"name": "token", "value": "changed"}}}

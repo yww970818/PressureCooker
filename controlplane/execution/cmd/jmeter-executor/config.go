@@ -25,6 +25,7 @@ import (
 
 type config struct {
 	isolated                                                                      bool
+	runtimeSlot                                                                   int
 	datasetLimit, taskInputLimit                                                  int64
 	id, role, cluster, port, token, state, work, results, java, home, common, rmi string
 	heap                                                                          []string

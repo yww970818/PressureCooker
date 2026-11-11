@@ -134,6 +134,9 @@ func TestMySQLProjectEnvironmentCRUDSnapshotAndIdempotency(t *testing.T) {
 	if props["jmeter.env.port"] != "8443" || props["jmeter.env.protocol"] != "https" || props["jmeter.env.var."+digest([]byte("token"))[:16]] != "environment-secret" {
 		t.Fatal("runtime environment missing", props)
 	}
+	if _, e = p.stopRun(str(run["id"]), "now"); e != nil {
+		t.Fatal(e)
+	}
 	invalid := clone(payload)
 	invalid["properties"] = Obj{"jmeter.env.host": "override"}
 	if _, _, e = p.createRun(invalid, "override"); e == nil {
@@ -185,6 +188,9 @@ func TestMySQLProjectEnvironmentRuntimePropertyBudget(t *testing.T) {
 	if e != nil || !created || len(obj(run["properties"])) != 307 {
 		t.Fatal("100 user keys plus 100 environment values and aliases must fit", created, e)
 	}
+	if _, e = p.stopRun(str(run["id"]), "now"); e != nil {
+		t.Fatal(e)
+	}
 	overflow := clone(payload)
 	obj(overflow["properties"])["extra"] = "overflow"
 	if _, created, e = p.createRun(overflow, "budget-overflow"); e == nil || created {
@@ -218,12 +224,17 @@ func TestMySQLProjectEnvironmentRuntimeValueLimits(t *testing.T) {
 	environmentID := fixtureEnvironmentID(t, p)
 	for _, runes := range []int{4096, 4097} {
 		payload := Obj{"name": fmt.Sprint(runes), "plan_id": plan["id"], "cluster_id": clusterID("controller-a"), "environment_id": environmentID, "properties": Obj{"emoji": strings.Repeat("😀", runes)}}
-		_, created, e := p.createRun(payload, fmt.Sprint(runes))
+		run, created, e := p.createRun(payload, fmt.Sprint(runes))
 		if runes == 4096 && (e != nil || !created) {
 			t.Fatal("4096 Unicode characters rejected", e)
 		}
 		if runes == 4097 && (e == nil || created) {
 			t.Fatal("4097 Unicode characters accepted")
+		}
+		if created {
+			if _, e = p.stopRun(str(run["id"]), "now"); e != nil {
+				t.Fatal(e)
+			}
 		}
 		_, e = p.workspaceCreate("environments", Obj{"name": fmt.Sprint(runes), "base_host": "https://fixture.invalid", "variables": []any{Obj{"name": "emoji", "value": strings.Repeat("😀", runes)}}})
 		if (runes == 4096) != (e == nil) {
@@ -254,6 +265,9 @@ func TestMySQLProjectEnvironmentRuntimePayloadByteLimit(t *testing.T) {
 	task := frozenDispatchTask(t, p, str(run["id"]))
 	if len(encoded(task)) <= 128*1024 || task.Properties["pad_00"] != props["pad_00"] {
 		t.Fatal("large properties were not preserved in the signed snapshot")
+	}
+	if _, e = p.stopRun(str(run["id"]), "now"); e != nil {
+		t.Fatal(e)
 	}
 	variables := []any{}
 	largeProps := Obj{}
@@ -455,12 +469,18 @@ func TestMySQLProjectEnvironmentsArchiveCrossProjectAndRestore(t *testing.T) {
 	if _, _, e = scoped.createRun(payload2, "scope-run"); e == nil {
 		t.Fatal("idempotency accepted changed environment")
 	}
+	if _, e = scoped.stopRun(str(run["id"]), "now"); e != nil {
+		t.Fatal(e)
+	}
 	run2, _, e := scoped.createRun(payload2, "scope-run-2")
 	if e != nil {
 		t.Fatal(e)
 	}
 	if run2["plan_sha256"] != run["plan_sha256"] || obj(run2["environment_snapshot"])["base_host"] == obj(run["environment_snapshot"])["base_host"] {
 		t.Fatal("same script did not retain two addresses")
+	}
+	if _, e = scoped.stopRun(str(run2["id"]), "now"); e != nil {
+		t.Fatal(e)
 	}
 	foreign, e := p.workspaceCreate("environments", Obj{"name": "foreign", "base_host": "http://foreign.internal"})
 	if e != nil {
