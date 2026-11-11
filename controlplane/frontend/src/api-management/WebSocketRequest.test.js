@@ -14,6 +14,11 @@ class FakeSocket {
  receive(data){this.onmessage?.({data});}
 }
 afterEach(()=>{cleanup();vi.unstubAllGlobals();FakeSocket.items=[];});
+it('blocks a collection request from connecting until a valid collection environment is selected',async()=>{
+ vi.stubGlobal('WebSocket',FakeSocket);render(WebSocketRequest,{props:{document,request:{path:'/ws',method:'get'},mode:'direct',requireCollectionEnvironment:true}});
+ await fireEvent.click(screen.getByRole('button',{name:'连接',exact:true}));
+ expect(await screen.findByText('请选择有效集合环境后再连接')).toBeTruthy();expect(FakeSocket.items).toHaveLength(0);
+});
 it.each([{path:'/other',method:'get'},{path:'/ws',method:'post'}])('closes the live connection when the request endpoint changes to %o',async request=>{
  vi.stubGlobal('WebSocket',FakeSocket);
  const view=render(WebSocketRequest,{props:{document,request:{path:'/ws',method:'get'},mode:'direct'}});

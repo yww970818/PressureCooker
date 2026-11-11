@@ -40,6 +40,7 @@ async function selectCollection() {
   await screen.findByRole('option', { name: '消息服务 · 版本 4' });
   await fireEvent.update(screen.getByLabelText('引用接口集合'), 'ws-collection');
   await waitFor(() => expect(screen.getByLabelText('WS 地址').value).toBe('wss://{{ws_host}}/socket/{socket_id}'));
+  await fireEvent.update(screen.getByLabelText('WS 集合环境'),'legacy-test');
 }
 
 it('edits WS connection, matching and numeric expressions only when applied', async () => {
@@ -116,6 +117,7 @@ it('refreshes a source only after the explicit refresh action and keeps local ed
   await ready();
   await fireEvent.click(screen.getByRole('button', { name: '刷新引用', exact: true }));
   await waitFor(() => expect(screen.getByLabelText('WS 地址').value).toBe('wss://{{ws_host}}/socket/{socket_id}'));
+  await fireEvent.update(screen.getByLabelText('WS 集合环境'),'legacy-test');
   await fireEvent.update(screen.getByLabelText('待发送消息'), 'edited after refresh');
   await fireEvent.click(screen.getByRole('button', { name: '应用到流程' }));
   expect(result.emitted().apply[0][0].nodes.find(node => node.id === 'ws').properties).toMatchObject({ api_reference: { revision: 4 }, config: { message: 'edited after refresh' } });

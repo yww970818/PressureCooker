@@ -48,7 +48,7 @@ export async function createScalarSession(document, clientState = {}, onChange =
       return values;
     } finally { variableOperations.delete(controller); signal?.removeEventListener('abort', abort); }
   }
-  const projectEnvironment = ref(null), exclusiveEnvironment = ref(false);
+  const projectEnvironment = ref(null), exclusiveEnvironment = ref(false), environmentLabel=ref('项目环境');
   const projectOverrides = ref(JSON.parse(JSON.stringify(clientState.project_environment_overrides || {})));
   function activeEnvironment() { return projectEnvironment.value ? mergedProjectEnvironment(projectEnvironment.value, projectOverrides.value) : exclusiveEnvironment.value ? { variables: [] } : getActiveEnvironment(store, store.workspace.documents[DOCUMENT_NAME]).environment; }
   let requestMode = clientState.request_mode === 'master' ? 'master' : 'direct';
@@ -124,7 +124,7 @@ export async function createScalarSession(document, clientState = {}, onChange =
   if (clientState.active_environment) selectEnvironment(clientState.active_environment);
   function environmentTarget() {
     if (projectEnvironment.value) return { url: projectEnvironment.value.base_host };
-    if (exclusiveEnvironment.value) return { url: '{{base_host}}', error: new Error('请选择有效集合环境后再调试请求') };
+    if (exclusiveEnvironment.value) return { url: '{{base_host}}', error: new Error(`请选择${environmentLabel.value}后再调试请求`) };
     const active = getActiveEnvironment(store, store.workspace.documents[DOCUMENT_NAME]);
     if (!active.name) return null;
     const variables = getEnvironmentVariables(active.environment);
@@ -241,7 +241,7 @@ export async function createScalarSession(document, clientState = {}, onChange =
     projectOverrides() { return projectOverrides.value; },
     pruneProjectOverrides(deletedIds) { for (const id of deletedIds) delete projectOverrides.value[id]; },
     updateProjectOverrides(value) { if (JSON.stringify(value) === JSON.stringify(projectOverrides.value)) return; projectOverrides.value = JSON.parse(JSON.stringify(value)); onChange(); },
-    setProjectEnvironment(value, { exclusive = false } = {}) { cancelVariableOperations(); projectEnvironment.value = value || null; exclusiveEnvironment.value = exclusive; },
+    setProjectEnvironment(value, { exclusive = false, label='项目环境' } = {}) { environmentLabel.value=label; cancelVariableOperations(); projectEnvironment.value = value || null; exclusiveEnvironment.value = exclusive; },
     setMode(value) {
       cancelVariableOperations();
       clearTransportStatus();

@@ -54,7 +54,7 @@ const displayedError = computed(() => error.value || variableResolution.value.pr
 const runtimeVariableNames = new Set(['ser', 'now', 'message_id', 'socket_id']);
 function previewAddress(template) {
   const missing = new Set(), unavailable = new Set(), automatic = new Set();
-  const text = String(template || '').replace(/\{\{\s*([\w.-]+)\s*\}\}/g, (placeholder, name) => {
+  const text = String(template || '').replace(/\{\{\s*([\p{L}\p{N}_.-]+)\s*\}\}/gu, (placeholder, name) => {
     if (variableResolution.value.automatic?.has(name)) { automatic.add(name); return placeholder; }
     try { return String(renderWsText(placeholder, variables.value)); }
     catch (reason) {
@@ -76,7 +76,7 @@ const bridge = createWsDebugSession({
 let frameSequence = 0;
 watch(config, () => emit('change'), { deep: true });
 watch(() => config.value.extraction_rules, rules => { try { bridge.setExtractionRules(rules); } catch (problem) { error.value = problem.message; } }, { deep: true, immediate: true });
-watch(() => [props.mode, props.projectEnvironment], () => { bridge.close(); }, { deep: true });
+watch(() => JSON.stringify([props.mode, props.projectEnvironment]), () => { bridge.close(); });
 // Saving refreshes the request object without changing the active endpoint.
 watch([() => props.request?.path, () => props.request?.method], () => bridge.close());
 watch(() => props.view, value => { if (value !== 'request') bridge.close(); });

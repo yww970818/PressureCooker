@@ -110,7 +110,7 @@ func makeManagerSpecs() []managerSpec {
 		{name: "upload_script", description: "上传名称和完整 JMX 文本，保存为本项目不可变脚本版本；不会启动任务。", schema: scopedSchema(map[string]any{"name": strSchema(`\S`, 1, 200), "content": strSchema("", 1, 5*1024*1024), "description": strSchema("", 0, 10000)}, "name", "content")},
 		{name: "download_script", description: "下载本项目不可变脚本的精确 JMX 原文，或当前流程导出；两个版本标识必须且只能提供一个。", schema: scopedSchema(map[string]any{"managerPlanId": planID, "workflowId": projectSchema()}), readOnly: true},
 		{name: "list_manager_plans", description: "列出本项目不可变 JMX 版本；草稿由 list_test_plans 列出。", schema: scopedSchema(summaryPageSchema(nil)), readOnly: true},
-		{name: "submit_console_task", description: "使用与控制台相同的管理端队列提交任务。所有新任务必须明确提供 environmentId；CSV脚本须提供 datasetSelections，支持copy/shard和每节点多个文件；timeoutSeconds 10至86400。脚本身份使用 pressurecooker.script_identities schema_version=1 声明，字段含name/type/secret/required；properties按script_identity.<身份名>.<声明字段>配置，最多20条身份；认证如何使用由脚本决定，旧Cookie身份脚本须显式转换并重新发布。身份名以字母开头，最多40个字母、数字、下划线或短横线。脚本选择身份，平台不自动轮询。全局属性合计最多100项，每值4096字符且身份字段为单行文本。任务固定环境快照；必须选择 clusterId，只使用所选集群控制器；省略 workers 时由服务端固定该集群全部关联节点，各节点执行完整 JMX，必须提供稳定幂等标识并在重试时复用参数。", schema: scopedSchema(map[string]any{
+		{name: "submit_console_task", description: "使用与控制台相同的管理端队列提交任务。仅当已发布脚本的 requires_project_environment 明确为 false 时可省略 environmentId，旧脚本及未完全绑定流程仍须提供；CSV脚本须提供 datasetSelections，支持copy/shard和每节点多个文件；timeoutSeconds 10至86400。脚本身份使用 pressurecooker.script_identities schema_version=1 声明，字段含name/type/secret/required；properties按script_identity.<身份名>.<声明字段>配置，最多20条身份；认证如何使用由脚本决定，旧Cookie身份脚本须显式转换并重新发布。身份名以字母开头，最多40个字母、数字、下划线或短横线。脚本选择身份，平台不自动轮询。全局属性合计最多100项，每值4096字符且身份字段为单行文本。任务固定环境快照；必须选择 clusterId，只使用所选集群控制器；省略 workers 时由服务端固定该集群全部关联节点，各节点执行完整 JMX，必须提供稳定幂等标识并在重试时复用参数。", schema: scopedSchema(map[string]any{
 			"clusterId": strSchema(`^cluster-[a-f0-9]{24}$`, 0, 0), "managerPlanId": planID, "name": strSchema(`\S`, 1, 200), "idempotencyKey": strSchema(`\S`, 1, 200),
 			"environmentId":           environmentIDSchema(),
 			"datasetSelections":       map[string]any{"type": "array", "items": objectSchema(map[string]any{"node_id": projectSchema(), "dataset_ids": map[string]any{"type": "array", "minItems": 1, "maxItems": 50, "items": projectSchema()}, "distribution": enumSchema("copy", "shard")}, "node_id", "dataset_ids", "distribution")},
@@ -120,7 +120,7 @@ func makeManagerSpecs() []managerSpec {
 			"reportTargets":           objectSchema(map[string]any{"min_rps": map[string]any{"type": "number", "minimum": 0, "maximum": 1e15}, "min_success_rate": map[string]any{"type": "number", "minimum": 0, "maximum": 100}, "max_p95_ms": map[string]any{"type": "number", "minimum": 0, "maximum": 1e15}, "max_p99_ms": map[string]any{"type": "number", "minimum": 0, "maximum": 1e15}, "min_duration_seconds": map[string]any{"type": "number", "minimum": 0, "maximum": 1e15}}),
 			"workers":                 workerIDsSchema(1),
 			"properties":              map[string]any{"type": "object", "additionalProperties": map[string]any{"type": "string"}}, "notes": strSchema("", 0, 10000),
-		}, "clusterId", "managerPlanId", "name", "idempotencyKey", "environmentId")},
+		}, "clusterId", "managerPlanId", "name", "idempotencyKey")},
 		{name: "get_cluster_status", description: "读取管理端、按集群关联的控制器与执行节点、共享节点和队列状态。", schema: scopedSchema(map[string]any{}), readOnly: true},
 		{name: "list_executions", description: "分页读取本项目控制台任务历史，不聚合 JTL。", schema: scopedSchema(map[string]any{"status": strSchema("", 0, 100), "search": strSchema("", 0, 200), "limit": intSchema(1, 200), "offset": map[string]any{"type": "integer", "minimum": 0}}), readOnly: true},
 		{name: "get_execution_status", description: "读取本项目任务状态及原始文件归档进度。", schema: scopedSchema(map[string]any{"executionId": runID}, "executionId"), readOnly: true},
@@ -135,7 +135,7 @@ func makeManagerSpecs() []managerSpec {
 		{name: "export_api_collection", description: "将本项目集合导出为 OpenAPI 或 Postman，返回完整原文。", schema: scopedSchema(map[string]any{"collectionId": projectSchema(), "format": enumSchema("openapi", "postman")}, "collectionId", "format"), readOnly: true},
 		{name: "create_api_request", description: "按集合当前版本新增接口，保留完整 OpenAPI 操作对象。", schema: scopedSchema(requestProperties(), "collectionId", "revision", "path", "method", "operation")},
 		{name: "update_api_request", description: "按集合当前版本修改接口；重命名路径或方法时提供原路径和原方法。", schema: scopedSchema(requestProperties(), "collectionId", "revision", "path", "method", "operation")},
-		{name: "debug_api_request", description: "通过管理端有界 HTTP 代理调试本项目接口；target_source 必须明确选择项目环境或文档服务地址。", schema: scopedSchema(map[string]any{"collectionId": projectSchema(), "path": strSchema(`^/`, 1, 10000), "method": enumSchema("GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS", "TRACE"), "environmentId": environmentIDSchema(), "target_source": enumSchema("project_environment", "document_server"), "variables": anyObject()}, "collectionId", "path", "method", "target_source")},
+		{name: "debug_api_request", description: "通过管理端有界 HTTP 代理调试本项目接口；target_source 优先选择 collection_environment 并指定 collection_environment_id；旧项目环境及文档地址保持显式兼容，目标参数互斥。", schema: scopedSchema(map[string]any{"collectionId": projectSchema(), "path": strSchema(`^/`, 1, 10000), "method": enumSchema("GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS", "TRACE"), "environmentId": environmentIDSchema(), "collection_environment_id": projectSchema(), "target_source": enumSchema("collection_environment", "project_environment", "document_server"), "variables": anyObject()}, "collectionId", "path", "method", "target_source")},
 		{name: "set_api_environments", description: "按稳定项目环境ID保存集合变量覆盖；空字符串有效，base_host由项目锁定。", schema: scopedSchema(map[string]any{"collectionId": projectSchema(), "revision": revisionSchema(), "environmentId": environmentIDSchema(), "variables": environmentProperties()["variables"]}, "collectionId", "revision", "environmentId", "variables")},
 		{name: "update_api_collection_settings", description: "按当前版本修改集合名称、描述、服务地址或 Scalar 客户端配置。", schema: scopedSchema(map[string]any{"collectionId": projectSchema(), "revision": revisionSchema(), "name": strSchema(`\S`, 1, 200), "description": strSchema("", 0, 10000), "servers": map[string]any{"type": "array", "items": anyObject()}, "client_state": anyObject()}, "collectionId", "revision")},
 	}
@@ -143,6 +143,7 @@ func makeManagerSpecs() []managerSpec {
 	update["collectionId"] = projectSchema()
 	update["revision"] = revisionSchema()
 	specs = append(specs, managerSpec{name: "update_api_collection", description: "按集合当前版本保存完整 OpenAPI 文档与客户端配置，版本冲突由管理端拒绝。", schema: scopedSchema(update, "collectionId", "revision", "name", "document")})
+	specs = append(specs, collectionEnvironmentSpecs()...)
 	specs = append(specs, historyDeleteSpecs()...)
 	specs = append(specs, datasetSpecs()...)
 	specs = append(specs, pressureReportSpecs()...)
@@ -403,6 +404,16 @@ func (m managerTools) call(ctx context.Context, name string, args map[string]any
 		return request(http.MethodPost, "/api/api-collections/import", payload(), "")
 	case "create_api_request", "update_api_request":
 		return request(http.MethodPut, collectionPath+"/requests", payload("collectionId"), "")
+	case "list_api_collection_environments":
+		return request(http.MethodGet, collectionPath+"/collection-environments", nil, "")
+	case "get_api_collection_environment":
+		return request(http.MethodGet, collectionPath+"/collection-environments/"+s("collectionEnvironmentId", ""), nil, "")
+	case "create_api_collection_environment":
+		return request(http.MethodPost, collectionPath+"/collection-environments", payload("collectionId", "collectionEnvironmentId"), "")
+	case "update_api_collection_environment":
+		return request(http.MethodPut, collectionPath+"/collection-environments/"+s("collectionEnvironmentId", ""), payload("collectionId", "collectionEnvironmentId"), "")
+	case "delete_api_collection_environment":
+		return request(http.MethodDelete, collectionPath+"/collection-environments/"+s("collectionEnvironmentId", ""), payload("collectionId", "collectionEnvironmentId"), "")
 	case "debug_api_request":
 		body := payload("collectionId", "environmentId")
 		if environment := s("environmentId", ""); environment != "" {

@@ -13,16 +13,17 @@ export function wsVariables(environment, client = {}) {
   return resolveVariableValues(wsVariableDefinitions(environment, client));
 }
 export function renderWsText(text, variables) {
-  if (!/\{\{\s*[\w.-]+\s*\}\}/.test(text)) return text;
+  if (!/\{\{\s*[\p{L}\p{N}_.-]+\s*\}\}/u.test(text)) return text;
+  const get = name => { if (!Object.hasOwn(variables, name) || variables[name] === undefined || variables[name] === null || /^\{\{.*\}\}$/.test(String(variables[name]))) { const error = new Error(`请填写环境变量：${name}`); error.code = 'missing_variable'; throw error; } return variables[name]; };
+  const expandText = value => value.replace(/\{\{\s*([\p{L}\p{N}_.-]+)\s*\}\}/gu, (_, name) => String(get(name)));
   function expand(value) {
     if (Array.isArray(value)) return value.map(expand);
-    if (value && typeof value === 'object') return Object.fromEntries(Object.entries(value).map(([key, child]) => [key, expand(child)]));
+    if (value && typeof value === 'object') return Object.fromEntries(Object.entries(value).map(([key, child]) => [expandText(key), expand(child)]));
     if (typeof value !== 'string') return value;
     if (/^\s*[\[{]/.test(value)) { try { return JSON.stringify(expand(JSON.parse(value))); } catch (error) { if (error.code === 'missing_variable') throw error; } }
-    const exact = value.match(/^\{\{\s*([\w.-]+)\s*\}\}$/);
-    const get = name => { if (!Object.hasOwn(variables, name) || variables[name] === undefined || variables[name] === null || /^\{\{.*\}\}$/.test(String(variables[name]))) { const error = new Error(`请填写环境变量：${name}`); error.code = 'missing_variable'; throw error; } return variables[name]; };
+    const exact = value.match(/^\{\{\s*([\p{L}\p{N}_.-]+)\s*\}\}$/u);
     if (exact) return get(exact[1]);
-    return value.replace(/\{\{\s*([\w.-]+)\s*\}\}/g, (_, name) => String(get(name)));
+    return expandText(value);
   }
   const prefix = text.startsWith('3:::') ? '3:::' : '', body = text.slice(prefix.length);
   let parsed; try { parsed = JSON.parse(body); } catch { return String(expand(body)); }

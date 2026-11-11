@@ -144,7 +144,7 @@ func TestMySQLAuthAPIIdempotency(t *testing.T) {
 		t.Fatal(code)
 	}
 	session["X-CSRF-Token"] = str(login["csrf_token"])
-	if code, _, _ := request("/api/plans", Obj{"name": "x", "content": "<x/>"}, session); code != 201 {
+	if code, _, _ := request("/api/plans", Obj{"name": "x", "content": "<jmeterTestPlan/>"}, session); code != 201 {
 		t.Fatal(code)
 	}
 	if code, _, _ := request("/api/logout", Obj{}, session); code != 200 {

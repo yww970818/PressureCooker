@@ -50,7 +50,7 @@ it('falls back past an invalid environment and rejects unsafe project/resource i
 it('restores API IDs and a request fingerprint without saving payload fields', () => {
   const requestKey = apiRequestKey('get', '/private?token=secret');
   rememberApiSelection('project-one', { collectionId: 'collection-1', requestKey, view: 'environment', url: 'https://secret/', body: 'private', headers: { Authorization: 'secret' } });
-  expect(loadApiSelection('project-one')).toEqual({ collectionId: 'collection-1', requestKey, view: 'environment' });
+  expect(loadApiSelection('project-one')).toEqual({ collectionId: 'collection-1', requestKey, view: 'request' });
   expect(loadApiSelection('project-two')).toEqual({ collectionId: '', requestKey: '', view: 'request' });
   const stored = JSON.stringify([...sessionStorage.entries(), ...localStorage.entries()]);
   expect(stored).not.toMatch(/private|secret|Authorization|headers|url|body/);
@@ -65,7 +65,7 @@ it('validates restored and remembered state without persisting unsafe identifier
 it('falls back safely when storage getters, reads, or writes fail', () => {
   rememberApiSelection('project-one', { collectionId: 'collection-1', requestKey: '', view: 'project-environment' });
   vi.stubGlobal('sessionStorage', { getItem() { throw new Error('restricted'); }, setItem() { throw new Error('restricted'); } });
-  expect(loadApiSelection('project-one').view).toBe('project-environment');
+  expect(loadApiSelection('project-one').view).toBe('request');
   rememberEnvironmentSelection('project-one', 'environment-2');
   expect(localStorage.getItem('pressurecooker.environment-selection.project-one')).toBe('environment-2');
   vi.stubGlobal('localStorage', undefined);

@@ -182,7 +182,7 @@ func TestMySQLProjectEnvironmentRuntimePropertyBudget(t *testing.T) {
 	}
 	payload := Obj{"cluster_id": clusterID("controller-a"), "name": "budget", "plan_id": plan["id"], "environment_id": environment["id"], "properties": props}
 	run, created, e := p.createRun(payload, "budget-boundary")
-	if e != nil || !created || len(obj(run["properties"])) != 306 {
+	if e != nil || !created || len(obj(run["properties"])) != 307 {
 		t.Fatal("100 user keys plus 100 environment values and aliases must fit", created, e)
 	}
 	overflow := clone(payload)
@@ -208,7 +208,7 @@ func TestMySQLProjectEnvironmentRuntimePropertyBudget(t *testing.T) {
 		t.Fatal(e)
 	}
 	retry, created, e := p.createRun(overflow, "budget-overflow")
-	if e != nil || created || retry["id"] != original["id"] || string(encoded(retry["environment_snapshot"])) != string(encoded(original["environment_snapshot"])) || len(obj(retry["properties"])) != 306 {
+	if e != nil || created || retry["id"] != original["id"] || string(encoded(retry["environment_snapshot"])) != string(encoded(original["environment_snapshot"])) || len(obj(retry["properties"])) != 307 {
 		t.Fatal("retry changed the frozen environment", e)
 	}
 }

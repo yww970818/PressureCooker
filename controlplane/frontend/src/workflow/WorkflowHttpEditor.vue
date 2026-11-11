@@ -7,6 +7,7 @@ import HttpRequestPreview from './HttpRequestPreview.vue';
 import HttpSnapshotEditor from './HttpSnapshotEditor.vue';
 import { bindEnvironmentVariables, useProjectEnvironments } from '../projects/environments.js';
 import { applyHttpSnapshot, createHttpDocument, mapScalarRequest } from './http-snapshot.js';
+import { collectionEnvironments, resolveCollectionEnvironment } from '../api-management/collection-environments.js';
 import { editNode } from './graph.js';
 import { runtimeVariables } from './runtime-variables.js';
 import VariableGuide from './VariableGuide.vue';
@@ -21,9 +22,13 @@ const referenceContextBlocked = computed(() => Boolean(initialReference && !sour
 const requestName = ref(node?.properties.name || 'HTTP 请求');
 const seed = shallowRef(null), editor = ref(null), ready = ref(false), pending = ref(false), error = ref(null), source = shallowRef(null), reference = shallowRef(initialReference ? clone(initialReference) : null);
 const collections = ref([]), listed = ref(false), collectionId = ref(''), version = ref(0), modified = ref(false), confirmAction = shallowRef(null);
-const environmentId = ref(props.graph.environment_binding === 'base_host' ? environments.state.selectedId : '');
-const selectedEnvironment = computed(() => environments.state.items.find(item => item.id === environmentId.value) || null);
+const environmentReference=ref(node?.properties.collection_environment_reference ? clone(node.properties.collection_environment_reference):null), environmentCollection=shallowRef(null);
+const environmentId = ref(environmentReference.value?.collection_environment_id||'');
+const legacyPreview=computed(()=>Boolean(initialReference&&!source.value&&!node?.properties.collection_environment_reference));
+const availableEnvironments=computed(()=>legacyPreview.value?environments.state.items:collectionEnvironments(environmentCollection.value,environments.state.items));
+const selectedEnvironment = computed(() => {if(legacyPreview.value)return environments.state.items.find(row=>row.id===environmentId.value)||null;try{return resolveCollectionEnvironment(availableEnvironments.value.find(item=>item.id===environmentId.value),environments.state.items);}catch{return null;}});
 const environmentMissing = computed(() => Boolean(environmentId.value && environments.state.loaded && !selectedEnvironment.value));
+const needsCollectionEnvironment=computed(()=>Boolean(source.value || environmentReference.value));
 const previewClientState = computed(() => {
   const state = seed.value?.client_state || {};
   if (!environments.state.loaded) return state;
@@ -50,7 +55,8 @@ function replace(value) {
   emit('dirty', false);
 }
 function changeName(event) { requestName.value = event.target.value; changed(); }
-function chooseEnvironment(event) { environmentId.value = event.target.value; changed(); }
+function chooseEnvironment(event) { environmentId.value = event.target.value; const collection=environmentCollection.value;environmentReference.value=!legacyPreview.value&&environmentId.value&&collection?{collection_id:collection.id,revision:collection.revision,collection_environment_id:environmentId.value}:null;changed(); }
+function setEnvironmentCollection(collection){environmentCollection.value=collection;if(!availableEnvironments.value.some(row=>row.id===environmentId.value)){environmentId.value='';environmentReference.value=null;}else if(environmentId.value)environmentReference.value={collection_id:collection.id,revision:collection.revision,collection_environment_id:environmentId.value};}
 function requestReplace(action) { if (modified.value) confirmAction.value = action; else action(); }
 function continueReplace() { const action = confirmAction.value; confirmAction.value = null; action?.(); }
 function chooseRequest(key) {
@@ -69,7 +75,7 @@ async function loadCollection(id, refresh = false) {
     const choices = listRequests(result.document).filter(request => request.protocol !== 'ws');
     const selected = refresh ? choices.find(item => item.path === initialReference.path && item.method === initialReference.method) : choices[0];
     if (!selected) throw new Error(refresh ? '原请求路径或方法已被移除' : '该集合没有可引用的请求');
-    source.value = result; collectionId.value = id;
+    source.value = result; collectionId.value = id;setEnvironmentCollection(result);
     replace({ document: result.document, client_state: result.client_state || {}, request: { path: selected.path, method: selected.method } });
     reference.value = { collection_id: result.id, revision: result.revision, path: selected.path, method: selected.method };
     emit('dirty', true);
@@ -86,25 +92,28 @@ async function apply() {
   pending.value = true; error.value = null;
   try {
     if (!requestName.value.trim()) throw new Error('请输入节点名称');
-    const snapshot = await editor.value.executionSnapshot({ template: props.graph.environment_binding === 'base_host' });
-    const mapped = mapScalarRequest(snapshot.executable, node.properties.config, { standalone: !source.value, environmentBinding: props.graph.environment_binding === 'base_host', runtimeVariables: runtimeVariables(props.graph, props.nodeId).map(row => row.name) });
-    const graph = editNode(applyHttpSnapshot(bindEnvironmentVariables(props.graph, environments.state.items), props.nodeId, mapped, reference.value), props.nodeId, { name: requestName.value.trim() });
+    if(needsCollectionEnvironment.value&&!selectedEnvironment.value)throw new Error('请显式选择当前集合的有效集合环境');
+    const snapshot = await editor.value.executionSnapshot({ template: Boolean(environmentReference.value) || props.graph.environment_binding === 'base_host' });
+    const mapped = mapScalarRequest(snapshot.executable, node.properties.config, { standalone: !source.value, environmentBinding: Boolean(environmentReference.value) || props.graph.environment_binding === 'base_host', runtimeVariables: runtimeVariables(props.graph, props.nodeId).map(row => row.name) });
+    const graph = editNode(applyHttpSnapshot(bindEnvironmentVariables(props.graph, environments.state.items), props.nodeId, mapped, reference.value), props.nodeId, { name: requestName.value.trim(), collection_environment_reference: environmentReference.value, ...(environmentReference.value?{api_environment_variables:mapped.environmentVariableNames||[]}: {}) });
     if (alive) { emit('dirty', false); emit('apply', graph); emit('close'); }
   } catch (problem) { if (alive) error.value = problem; }
   finally { if (alive) pending.value = false; }
 }
 async function hydrateReferenceEnvironment() {
-  if (!initialReference || source.value) return;
+  if ((!initialReference && !environmentReference.value) || source.value) return;
   const token = sequence;
-  const latest = collections.value.find(item => item.id === initialReference.collection_id);
+  const origin=environmentReference.value||initialReference;
+  const latest = collections.value.find(item => item.id === origin.collection_id);
   referenceContextState.value = 'loading'; ready.value = false;
   try {
     // The list is bounded; an absent row says nothing about the reference's
     // availability. Always resolve its exact version when it cannot be reused.
-    const collection = latest?.revision === initialReference.revision && !latest.summary ? latest : await api(`/api-collections/${pathId(initialReference.collection_id)}/versions/${initialReference.revision}`);
+    const collection = latest?.revision === origin.revision && !latest.summary ? latest : await api(`/api-collections/${pathId(origin.collection_id)}/versions/${origin.revision}`);
     if (!alive || token !== sequence || source.value) return;
     // Read the referenced version's variable overrides without changing the
     // node's HTTP snapshot or silently refreshing it to today's API definition.
+    environmentCollection.value=collection;
     seed.value = { ...seed.value, client_state: { ...seed.value.client_state, project_environment_overrides: clone(collection.client_state?.project_environment_overrides || {}) } };
     referenceContextState.value = 'ready';
   } catch (problem) {
@@ -135,10 +144,10 @@ onBeforeUnmount(() => { alive = false; sequence++; });
     <Notice v-if="reference" tone="info">引用版本 {{ reference.revision }} · {{ reference.method.toUpperCase() }} {{ reference.path }}。确认后保存请求快照；集合后续修改需显式刷新。</Notice>
     <Notice v-if="referenceStatus" tone="warning">{{ referenceStatus }}</Notice>
     <ErrorBox :error="error"/><VariableGuide :graph="graph"/>
-    <div class="workflow-http-environment"><label>接口环境<select class="ui-select" aria-label="接口环境" :value="environmentId" :disabled="pending || environments.state.loading" @change="chooseEnvironment"><option value="">{{ environments.state.loading ? '正在读取接口环境…' : '不选择环境' }}</option><option v-if="environmentMissing" :value="environmentId" disabled>原环境已不可用，请重新选择</option><option v-for="environment in environments.state.items" :key="environment.id" :value="environment.id">{{ environment.name }}</option></select></label><p>{{ !environments.state.loading && !environments.state.items.length ? '暂无可选环境，请先在项目环境中配置。' : '直接使用接口集合的环境变量，同名变量以集合值为准。' }}</p></div>
+    <div class="workflow-http-environment"><label>接口环境<select class="ui-select" aria-label="接口环境" :value="environmentId" :disabled="pending || environments.state.loading" @change="chooseEnvironment"><option value="">{{ environments.state.loading ? '正在读取接口环境…' : '请选择集合环境' }}</option><option v-if="environmentMissing" :value="environmentId" disabled>原环境已不可用，请重新选择</option><option v-for="environment in availableEnvironments" :key="environment.id" :value="environment.id">{{ environment.name }}</option></select></label><p>{{ !environments.state.loading && !availableEnvironments.length ? '暂无集合环境，请先在项目环境页为此集合创建。' : '环境定义固定到引用版本，父项目环境在新任务提交时持续继承。' }}</p></div>
     <Notice v-if="environmentMissing" tone="warning">所选接口环境已不可用，请重新选择。</Notice>
-    <div v-if="seed" class="workflow-http-client"><component :is="source ? HttpRequestPreview : HttpSnapshotEditor" :runtime-variables="runtimeVariables(graph, nodeId).map(row => row.name)" v-if="!referenceContextBlocked" :key="version" ref="editor" :document="seed.document" :client-state="previewClientState" :request="seed.request" :project-environment="selectedEnvironment" :exclusive-environment="graph.environment_binding === 'base_host'" @change="changed" @ready="ready = true" @error="error = $event"/><p v-else class="workflow-hint" role="status">{{ referenceContextState === 'loading' ? '正在读取引用版本的接口环境…' : '引用环境未能读取，暂无法预览或应用。请刷新引用或选择其他接口。' }}</p></div>
-    <p class="workflow-hint">{{ source ? '引用接口参数只读；如需修改，请先应用到流程，再选择“当前节点执行快照”编辑。' : '当前快照参数可编辑，仅应用于当前流程节点，不修改接口管理中的原接口；取消不保留修改。' }}{{ graph.environment_binding === 'base_host' ? '此处环境仅用于预览，执行任务时需再次明确选择；预览地址和变量值不会写入脚本。' : '应用时保留所选环境的执行快照。' }}</p>
+    <div v-if="seed" class="workflow-http-client"><component :is="source ? HttpRequestPreview : HttpSnapshotEditor" :runtime-variables="runtimeVariables(graph, nodeId).map(row => row.name)" v-if="!referenceContextBlocked" :key="version" ref="editor" :document="seed.document" :client-state="previewClientState" :request="seed.request" :project-environment="selectedEnvironment" :exclusive-environment="needsCollectionEnvironment || graph.environment_binding === 'base_host'" @change="changed" @ready="ready = true" @error="error = $event"/><p v-else class="workflow-hint" role="status">{{ referenceContextState === 'loading' ? '正在读取引用版本的接口环境…' : '引用环境未能读取，暂无法预览或应用。请刷新引用或选择其他接口。' }}</p></div>
+    <p class="workflow-hint">{{ source ? '引用接口参数只读；如需修改，请先应用到流程，再选择“当前节点执行快照”编辑。' : '当前快照参数可编辑，仅应用于当前流程节点，不修改接口管理中的原接口；取消不保留修改。' }}{{ graph.environment_binding === 'base_host' ? '节点使用选定的集合环境；预览地址和变量值不会写入脚本。' : '绑定集合环境时只保存模板与来源，创建任务时固定生效值。' }}</p>
     <template #footer><Button :disabled="pending" @click="emit('close')">取消</Button><Button variant="primary" :disabled="pending || !ready || environments.state.loading || environmentMissing || referenceContextBlocked" @click="apply">{{ pending ? '正在处理…' : '应用到流程' }}</Button></template>
   </Modal>
   <Modal v-if="confirmAction" title="替换当前请求参数" @close="confirmAction = null"><p>当前请求参数、节点名称或环境选择尚未应用，切换会替换弹窗中的修改。</p><template #footer><Button @click="confirmAction = null">保留当前参数</Button><Button variant="primary" @click="continueReplace">放弃修改并切换</Button></template></Modal>

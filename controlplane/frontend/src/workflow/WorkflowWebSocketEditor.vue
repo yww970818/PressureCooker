@@ -6,6 +6,8 @@ import { listRequests } from '../api-management/documents.js';
 import { bindEnvironmentVariables, useProjectEnvironments } from '../projects/environments.js';
 import { clone } from './catalog.js';
 import { applyWebSocketSnapshot, mapWebSocketRequest, normalizeWebSocketConfig, webSocketEnvironmentCandidates } from './websocket-snapshot.js';
+import { editNode } from './graph.js';
+import { collectionEnvironments, resolveCollectionEnvironment } from '../api-management/collection-environments.js';
 import VariableGuide from './VariableGuide.vue';
 
 const props = defineProps({ graph: { type: Object, required: true }, nodeId: { type: String, required: true }, refreshReference: Boolean });
@@ -13,6 +15,10 @@ const emit = defineEmits(['close', 'apply', 'dirty']);
 const api = createProjectApi(), environments = useProjectEnvironments();
 const node = props.graph.nodes.find(item => item.id === props.nodeId);
 const initialReference = node?.properties.api_reference ? clone(node.properties.api_reference) : null;
+const environmentReference=ref(node?.properties.collection_environment_reference?clone(node.properties.collection_environment_reference):null),environmentId=ref(environmentReference.value?.collection_environment_id||'');
+const availableEnvironments=computed(()=>collectionEnvironments(context.value,environments.state.items));
+const effectiveEnvironment=computed(()=>{try{return {value:resolveCollectionEnvironment(availableEnvironments.value.find(row=>row.id===environmentId.value),environments.state.items)}}catch(error){return {error}}});
+function chooseEnvironment(event){environmentId.value=event.target.value;environmentReference.value=environmentId.value&&context.value?{collection_id:context.value.id,revision:context.value.revision,collection_environment_id:environmentId.value}:null;changed();}
 const initialConfig = normalizeWebSocketConfig(node?.properties.config);
 const config = ref(clone(initialConfig)), requestName = ref(node?.properties.name || 'WebSocket 请求');
 const reference = shallowRef(initialReference), context = shallowRef(null), source = shallowRef(null);
@@ -43,6 +49,8 @@ function replaceRequest(collection, request) {
   requestName.value = request.name;
   reference.value = { collection_id: collection.id, revision: collection.revision, path: request.path, method: request.method };
   source.value = collection; context.value = collection; contextState.value = 'ready';
+  if(!availableEnvironments.value.some(row=>row.id===environmentId.value))environmentId.value='';
+  environmentReference.value=environmentId.value?{collection_id:collection.id,revision:collection.revision,collection_environment_id:environmentId.value}:null;
   collectionId.value = collection.id; requestKey.value = request.key; templateIndex.value = sourceRequest.value?.messages?.length ? '0' : '';
   modified.value = false; error.value = null; emit('dirty', true);
 }
@@ -57,14 +65,14 @@ function chooseTemplate(event) {
   config.value.message = templates.value[index].body || ''; templateIndex.value = index; changed();
 }
 async function hydrateReferenceContext() {
-  if (!reference.value) { contextState.value = 'ready'; return; }
-  const token = sequence, ref = reference.value;
+  if (!reference.value && !environmentReference.value) { contextState.value = 'ready'; return; }
+  const token = sequence, ref = environmentReference.value || reference.value;
   contextState.value = 'loading';
   try {
     const listed = collections.value.find(collection => collection.id === ref.collection_id && collection.revision === ref.revision && collection.document);
     const collection = listed || await api(`/api-collections/${pathId(ref.collection_id)}/versions/${ref.revision}`);
     if (!alive || token !== sequence) return;
-    if (!collection.document?.paths?.[ref.path]?.[ref.method]?.['x-pressure-ws']) throw new Error('引用版本中没有此 WebSocket 请求');
+    if (ref.path && !collection.document?.paths?.[ref.path]?.[ref.method]?.['x-pressure-ws']) throw new Error('引用版本中没有此 WebSocket 请求');
     // Resolve variables/templates from the immutable source without replacing
     // the imported or locally edited execution snapshot.
     context.value = collection; contextState.value = 'ready';
@@ -112,9 +120,11 @@ function apply() {
   error.value = null;
   try {
     if (!requestName.value.trim()) throw new Error('请输入节点名称');
+    if((source.value||environmentReference.value)&&!effectiveEnvironment.value.value)throw new Error('请显式选择当前集合的有效集合环境');
     if (!config.value.connectionId.trim()) throw new Error('请输入连接标识');
     if (config.value.action === 'connect' && !config.value.url.trim()) throw new Error('请输入 WS 地址');
-    const next = applyWebSocketSnapshot(props.graph, props.nodeId, { name: requestName.value.trim(), config: config.value }, reference.value, candidates.value);
+    let next = applyWebSocketSnapshot(props.graph, props.nodeId, { name: requestName.value.trim(), config: config.value }, reference.value, candidates.value);
+    next=editNode(next,props.nodeId,{collection_environment_reference:environmentReference.value});
     emit('dirty', false); emit('apply', bindEnvironmentVariables(next, environments.state.items)); emit('close');
   } catch (problem) { error.value = problem; }
 }
@@ -144,6 +154,9 @@ onBeforeUnmount(() => { alive = false; sequence++; });
     </div>
     <Notice v-if="reference" tone="info">引用版本 {{ reference.revision }} · WS {{ reference.path }}。下方参数是当前节点的可编辑执行快照，应用不会修改接口集合。</Notice>
     <Notice v-if="referenceStatus" tone="warning">{{ referenceStatus }}</Notice>
+    <div v-if="context" class="workflow-ws-toolbar"><label>集合环境<select class="ui-select" aria-label="WS 集合环境" :value="environmentId" :disabled="pending" @change="chooseEnvironment"><option value="">请选择集合环境</option><option v-for="row in availableEnvironments" :key="row.id" :value="row.id">{{row.name}}</option></select></label><p v-if="effectiveEnvironment.value">生效地址：{{effectiveEnvironment.value.base_host}}</p><p v-else-if="!availableEnvironments.length">请在项目环境页为此集合创建环境。</p></div>
+    <Notice v-if="environmentReference">节点环境：{{environmentReference.collection_environment_id}} · 集合版本 {{environmentReference.revision}}；解除接口引用保留环境绑定。</Notice>
+    <ErrorBox v-if="environmentId" :error="effectiveEnvironment.error"/>
     <ErrorBox :error="error"/>
     <p v-if="blocked && contextState === 'loading'" class="workflow-hint" role="status">正在读取引用版本的环境变量和消息模板…</p>
     <fieldset class="workflow-ws-form" :disabled="pending" @input="changed" @change="changed">
@@ -172,7 +185,7 @@ onBeforeUnmount(() => { alive = false; sequence++; });
         </section>
       </div>
     </fieldset>
-    <div class="workflow-ws-variables"><strong>运行时变量</strong><p class="workflow-hint" v-pre>支持 {{变量名}} 和 ${变量名}。ser、now、message_id、last_ser 由 WS 执行器生成，socket_id 来自传统 Socket.IO 握手；CSV 和前序 JSON 提取值按作用域生效，其他名称使用环境变量或显式提取规则。</p><p v-if="candidates.length" class="workflow-hint">环境候选变量：<code v-for="name in candidates" :key="name">{{ name }}</code></p><p v-if="graph.environment_binding === 'base_host'" class="workflow-hint">{{ reference ? '执行任务时使用所选项目环境，并按引用版本应用集合的同名变量覆盖。' : '执行任务时使用所选项目环境。' }}这里保留占位符，不写入环境值。</p><p v-else class="workflow-hint">此流程未绑定项目环境，保留当前地址和变量表达式。如需在创建任务时使用项目与集合环境变量，请先在画布启用“绑定项目环境 base_host”。</p></div>
+    <div class="workflow-ws-variables"><strong>运行时变量</strong><p class="workflow-hint" v-pre>支持 {{变量名}} 和 ${变量名}。ser、now、message_id、last_ser 由 WS 执行器生成，socket_id 来自传统 Socket.IO 握手；CSV 和前序 JSON 提取值按作用域生效，其他名称使用环境变量或显式提取规则。</p><p v-if="candidates.length" class="workflow-hint">环境候选变量：<code v-for="name in candidates" :key="name">{{ name }}</code></p><p v-if="graph.environment_binding === 'base_host'" class="workflow-hint">{{ reference ? '绑定集合环境时使用节点选择的环境；未绑定的历史引用仍使用任务项目环境。' : '执行任务时使用所选项目环境。' }}这里保留占位符，不写入环境值。</p><p v-else class="workflow-hint">此流程未绑定项目环境，保留当前地址和变量表达式。如需在创建任务时使用项目与集合环境变量，请先在画布启用“绑定项目环境 base_host”。</p></div>
     <VariableGuide :graph="graph"/>
     <template #footer><Button :disabled="pending" @click="emit('close')">取消</Button><Button variant="primary" :disabled="pending || environments.state.loading || blocked" @click="apply">{{ pending ? '正在处理…' : '应用到流程' }}</Button></template>
   </Modal>

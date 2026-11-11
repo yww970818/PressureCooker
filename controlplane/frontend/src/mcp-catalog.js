@@ -39,6 +39,11 @@ const catalog = {
   create_api_request: ['接口与环境', '新增接口请求', '按集合当前版本保存路径、方法与完整 OpenAPI 操作对象，包括参数、请求体、认证和响应。'],
   update_api_request: ['接口与环境', '修改接口请求', '按集合当前版本更新接口；变更路径或方法时传入原路径和原方法以替换原请求。'],
   debug_api_request: ['接口与环境', '调试接口请求', '由管理端代理执行所选集合请求，须明确选择项目环境或文档服务地址及变量；返回有大小和超时限制的状态码、响应头、正文与耗时。'],
+  list_api_collection_environments: ['接口与环境','列出集合环境','读取指定集合的独立环境列表及父环境可用状态。'],
+  get_api_collection_environment: ['接口与环境','读取集合环境','读取集合环境配置与合并后的当前生效配置。'],
+  create_api_collection_environment: ['接口与环境','创建集合环境','按集合版本创建独立环境或持续继承父项目环境，管理端生成稳定ID。'],
+  update_api_collection_environment: ['接口与环境','更新集合环境','按集合版本替换自有配置；省略基础地址恢复继承，空字符串变量保留覆盖。'],
+  delete_api_collection_environment: ['接口与环境','删除集合环境','按集合版本删除环境，不改写历史引用和任务快照。'],
   set_api_environments: ['接口与环境', '保存集合环境覆盖', '按稳定项目环境ID和集合版本保存自定义变量覆盖；继承项目变量，集合优先，空字符串有效，variables空数组清空覆盖，base_host不可设置。'],
   update_api_collection_settings: ['接口与环境', '修改集合设置', '按集合当前版本更新名称、描述、服务地址或 Scalar 客户端状态。'],
   create_test_plan: ['草稿与发布', '创建测试草稿', '新建 JMeter 测试计划草稿，返回草稿标识和根节点标识，供后续添加组件。'],
@@ -96,7 +101,7 @@ const catalog = {
   move_element: ['元素编辑', '移动组件', '将组件移至新的父节点下，可指定插入位置。'],
   reorder_children: ['元素编辑', '调整子组件顺序', '按提供的节点标识顺序重排父节点下的子组件。'],
   set_element_enabled: ['元素编辑', '启用或停用组件', '修改组件的启用状态，保留组件内容以便后续恢复。'],
-  submit_console_task: ['任务与产物', '提交控制台任务', '明确选择执行集群后，把本项目已发布脚本提交到控制台相同的任务队列，仅使用该集群的控制器和节点。任务保存集群快照。所有新任务必须明确选择项目环境，环境值进入全局属性并保存快照；逐 CSV 节点选择一份或多份数据集及复制或分片方式，可设置执行节点、属性、超时和备注，并提供稳定幂等标识，同一请求重试时复用标识和参数。'],
+  submit_console_task: ['任务与产物', '提交控制台任务', '明确选择执行集群后，把本项目已发布脚本提交到控制台相同的任务队列，仅使用该集群的控制器和节点。项目环境默认必填，仅服务端确认脚本全部目标已绑定集合环境且无剩余项目环境依赖时可省略；环境值保存快照。逐 CSV 节点选择一份或多份数据集及复制或分片方式，可设置执行节点、属性、超时和备注，并提供稳定幂等标识，同一请求重试时复用标识和参数。'],
   get_cluster_status: ['任务与产物', '读取集群状态', '查看管理实例、各集群的控制器与关联执行节点、共享节点及全平台任务队列状态。'],
   list_executions: ['任务与产物', '查询任务历史', '分页查询管理服务中的任务，支持按状态和名称或标识搜索，不汇总 JTL 样本。'],
   get_execution_status: ['任务与产物', '读取任务状态', '查询任务执行状态和原始文件归档进度，执行标识为管理服务中的任务标识。'],
@@ -270,7 +275,7 @@ const parameters = {
   workerIds: ['集群关联节点', '要关联到当前全局集群的节点标识列表；省略保留，空列表解除关联，可用节点和冲突由管理端校验。'],
   callbackUrl: ['集群回调地址', '全局集群使用的 HTTP(S) 回调地址；省略保留，空文本恢复默认地址，不在地址中放入令牌或密码。'],
   copySourceExecutionId: ['复制来源任务', '本项目历史任务标识，用于追溯本次复制来源；提交仍以确认后的新任务配置为准。'],
-  copyEnvironmentSnapshot: ['沿用来源环境快照', 'true 沿用来源任务的可用冻结环境快照，须同时提供 copySourceExecutionId；false 使用所选环境的当前配置，仍需明确 environmentId。'],
+  copyEnvironmentSnapshot: ['沿用来源环境快照', 'true 沿用来源任务的可用冻结环境快照，须同时提供 copySourceExecutionId；false 使用当前配置。仅全绑定脚本可省略 environmentId。'],
   min_rps: ['最低每秒请求数', '普通采样每秒请求数的非负下限。'],
   min_success_rate: ['最低请求成功率', '请求成功率下限，取值为 0 至 100。'],
   max_p95_ms: ['P95 耗时上限', '至少 95% 请求的耗时应不超过此毫秒数。'],
@@ -283,6 +288,9 @@ const parameters = {
   description: ['描述', '项目、脚本或接口集合的补充说明。'],
   workflowId: ['流程标识', '当前项目内的流程标识；用于导出当前流程，与不可变脚本版本标识互斥。'],
   collectionId: ['接口集合标识', '当前项目内的接口集合标识，由集合创建、导入或列表结果取得。'],
+  collectionEnvironmentId: ['集合环境标识','从当前集合的环境列表或创建结果取得的稳定ID。'],
+  collection_environment_id: ['集合环境标识','target_source=collection_environment 时必填，与旧项目环境/文档目标互斥。'],
+  parent_environment_id: ['父项目环境标识','可选；须属于当前项目。未覆盖的地址和变量持续继承父环境的当前配置。'],
   environmentId: ['项目环境标识', '当前项目内的统一环境标识，从项目环境列表或创建结果取得。'],
   base_host: ['基础地址', '完整 HTTP(S) 地址，可包含端口及基础路径；不可包含用户凭据、查询参数或片段。'],
   document: ['接口文档', '完整 OpenAPI 文档对象，保留接口、认证、示例、模型与扩展字段。'],
@@ -395,9 +403,9 @@ export function parameterInfo(toolName, path) {
   if (key === 'filename' && toolName === 'add_csv_data_set') info.description = 'CSV 数据文件的绝对路径，需在各执行节点上可读。';
   if (key === 'filename' && toolName === 'add_ftp_request') info.description = 'FTP 服务器上的远端文件路径。';
   const projectEnvironment = toolName.endsWith('_project_environment') || toolName === 'list_project_environments';
-  if (key === 'environmentId' && toolName === 'submit_console_task') info.description = '所有新任务都必须明确选择项目环境；环境值进入全局属性并固定快照，重试复用原标识与参数。';
+  if (key === 'environmentId' && toolName === 'submit_console_task') info.description = '默认必填；仅脚本 requires_project_environment=false 时可省略。集合环境绑定节点使用各自目标并固定快照。';
   if (key === 'environmentId' && toolName === 'debug_api_request') info.description = 'target_source 为 project_environment 时必填，使用该项目环境的基础地址和变量。';
-  if (key === 'target_source' && toolName === 'debug_api_request') Object.assign(info, { known: true, label: '目标来源', description: 'project_environment 使用项目环境；document_server 使用接口文档服务地址。' });
+  if (key === 'target_source' && toolName === 'debug_api_request') Object.assign(info, { known: true, label: '目标来源', description: 'collection_environment 使用集合环境及其父环境；project_environment 和 document_server 为旧显式兼容目标，三者互斥。' });
   if (key === 'variables' && toolName === 'debug_api_request') Object.assign(info, { label: '调试变量', description: '本次接口调试的变量覆盖值对象。' });
   if (projectEnvironment && key === 'variables') Object.assign(info, { label: '自定义变量列表', description: '此环境的自定义变量名称和值列表，不包含 base_host；不允许重复名称。服务地址、客户端标识等按实际需要配置，不预置业务变量；集合同名覆盖值优先。' });
   if (projectEnvironment && key === 'name') Object.assign(info, path.includes('variables[]') ? { label: '变量名称', description: '自定义变量的名称；变量列表不包含 base_host，名称不可重复。' } : { label: '环境名称', description: '便于识别的项目环境名称，例如测试或正式。' });

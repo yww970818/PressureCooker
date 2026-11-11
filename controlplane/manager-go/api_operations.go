@@ -658,15 +658,23 @@ func (p *Platform) collectionDebug(ctx context.Context, id string, body Obj) (Ob
 	if strings.ContainsAny(path, "{}") {
 		return nil, api(400, "parameter_value_required", "路径参数尚未填写")
 	}
-	target, e := proxyTarget(strings.TrimSuffix(server, "/") + path)
+	base, e := proxyTarget(server)
 	if e != nil {
 		return nil, e
 	}
-	if len(query) > 0 {
-		if target.RawQuery != "" {
-			query = append([]string{target.RawQuery}, query...)
-		}
-		target.RawQuery = strings.Join(query, "&")
+	serverQuery := base.RawQuery
+	base.RawQuery, base.ForceQuery = "", false
+	target, e := proxyTarget(strings.TrimSuffix(base.String(), "/") + path)
+	if e != nil {
+		return nil, e
+	}
+	// Append operation paths to the URL path, then merge all query sources once.
+	// A query API key must not overwrite the server's authored query string.
+	if target.RawQuery != "" {
+		query = append([]string{target.RawQuery}, query...)
+	}
+	if serverQuery != "" {
+		query = append([]string{serverQuery}, query...)
 	}
 	content, contentType, e := operationBodyWithVariables(operation, variables)
 	if e != nil {
@@ -784,15 +792,22 @@ func applyDebugSecurity(document, operation Obj, headers http.Header, query *[]s
 		security = document["security"]
 	}
 	requirements := arr(security)
-	if len(requirements) == 0 || headers.Get("Authorization") != "" {
+	if len(requirements) == 0 {
 		return nil
 	}
 	if len(requirements) != 1 {
 		return api(400, "unsupported_operation", "请明确选择单一认证方案")
 	}
 	schemes := obj(obj(document["components"])["securitySchemes"])
+	explicitAuthorization := headers.Get("Authorization") != ""
 	for name := range obj(requirements[0]) {
 		scheme := obj(schemes[name])
+		// An explicit Authorization replaces only the authorization credential.
+		// Other schemes in the same requirement are AND conditions, so API keys
+		// must still be resolved and validated for this request.
+		if explicitAuthorization && scheme["type"] != "apiKey" {
+			continue
+		}
 		token, e := expandAPIVariables(str(scheme["x-scalar-secret-token"]), variables)
 		if e != nil {
 			return e

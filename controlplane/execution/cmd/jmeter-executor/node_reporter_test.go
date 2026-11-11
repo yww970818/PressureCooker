@@ -125,7 +125,7 @@ func TestCoreReporterEpochChangeNeverRelabelsOlderWorkerObservations(t *testing.
 			t.Error("worker probe was not authenticated")
 		}
 		n := probes.Add(1)
-		json.NewEncoder(w).Encode(map[string]any{"id": "worker-1", "role": "worker", "healthy": true, "status": "idle", "generation": n, "job": nil, "reset_operation": nil})
+		json.NewEncoder(w).Encode(map[string]any{"version": 1, "id": "worker-1", "role": "worker", "healthy": true, "status": "idle", "generation": n, "job": nil, "reset_operation": nil})
 	}))
 	defer worker.Close()
 	var mu sync.Mutex
@@ -179,7 +179,7 @@ func TestCoreReporterEpochChangeNeverRelabelsOlderWorkerObservations(t *testing.
 			b = report.Workers[0].Generation
 		}
 		if report.Workers[0].QueueConnected != nil {
-			t.Fatal("legacy worker's unknown MQ status became false")
+			t.Fatal("worker's unknown MQ status became false")
 		}
 	}
 	if len(reports[0].Workers) != 0 || reports[0].ObservationEpoch != "" || a < 1 || b <= a {

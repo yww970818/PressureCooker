@@ -41,7 +41,8 @@ func parseEnvironmentBase(value string) (Obj, error) {
 		return nil, api(400, "invalid_base_host", "base_host端口无效")
 	}
 	basePath := strings.TrimRight(u.EscapedPath(), "/")
-	return Obj{"base_host": value, "protocol": u.Scheme, "host": u.Hostname(), "port": u.Port(), "base_path": basePath}, nil
+	wsBase := strings.Replace(strings.Replace(value, "https://", "wss://", 1), "http://", "ws://", 1)
+	return Obj{"base_host": value, "ws_base_host": wsBase, "protocol": u.Scheme, "host": u.Hostname(), "port": u.Port(), "base_path": basePath}, nil
 }
 func validEnvironmentName(name string) bool {
 	return strings.TrimSpace(name) != "" && utf8.RuneCountInString(name) <= 200 && validXMLText(name) && !strings.ContainsAny(name, "\r\n${},")
@@ -145,7 +146,7 @@ func environmentSnapshotWithResolver(data Obj, resolver environmentRuleResolver,
 	delete(snapshot, "created_at")
 	delete(snapshot, "updated_at")
 	props := Obj{}
-	for _, key := range []string{"base_host", "protocol", "host", "port", "base_path"} {
+	for _, key := range []string{"base_host", "ws_base_host", "protocol", "host", "port", "base_path"} {
 		snapshot[key] = address[key]
 		props["jmeter.env."+key] = address[key]
 		if key == "base_host" {

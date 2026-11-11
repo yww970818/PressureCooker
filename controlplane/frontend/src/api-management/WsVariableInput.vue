@@ -11,7 +11,7 @@ const root = ref(null), editor = ref(null), editingFullAddress = ref(false);
 const prefix = computed(() => {
   if (!props.address) return null;
   const text = props.modelValue;
-  const reference = text.match(/^\{\{\s*[\w.-]+\s*\}\}/);
+  const reference = text.match(/^\{\{\s*[\p{L}\p{N}_.-]+\s*\}\}/u);
   const scheme = text.match(/^(?:https?|wss?):\/\//i);
   let end;
   if (reference) end = reference[0].length;
@@ -21,7 +21,7 @@ const prefix = computed(() => {
   } else return null;
   const source = text.slice(0, end);
   let unresolved = false;
-  const resolved = source.replace(/\{\{\s*([\w.-]+)\s*\}\}/g, (all, name) => {
+  const resolved = source.replace(/\{\{\s*([\p{L}\p{N}_.-]+)\s*\}\}/gu, (all, name) => {
     const value = props.variables?.[name];
     if (value === undefined || value === null || String(value).includes('{{')) { unresolved = true; return all; }
     return String(value);

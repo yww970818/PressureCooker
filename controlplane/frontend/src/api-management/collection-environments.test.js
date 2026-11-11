@@ -19,6 +19,7 @@ describe('collection environment resources', () => {
  it('acknowledges environment-only changes without replacing request drafts', () => {
   const draft={id:'c',revision:2,document:{paths:{'/draft':{}}},client_state:{auth:{token:'draft'},collection_environments:[]}};
   const saved={id:'c',revision:3,document:{paths:{'/server':{}}},client_state:{collection_environments:[resource]}};
+  expect(()=>applyEnvironmentReceipt(draft,{...saved,revision:4})).toThrow(/版本/);
   const next=applyEnvironmentReceipt(draft,saved);
   expect(next).toMatchObject({revision:3,document:{paths:{'/draft':{}}},client_state:{auth:{token:'draft'},collection_environments:[resource]}});
  });

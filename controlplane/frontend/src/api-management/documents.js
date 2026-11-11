@@ -37,7 +37,7 @@ export function requestInput(name, method, address, options = {}) {
   if (!name.trim()) throw new Error('请输入请求名称');
   if (method === 'ws') {
     const input = address.trim();
-    const hostVariable = input.match(/^\{\{\s*[\w.-]+\s*\}\}(\/[^#]*)?$/);
+    const hostVariable = input.match(/^\{\{\s*[\p{L}\p{N}_.-]+\s*\}\}(\/[^#]*)?$/u);
     if (!hostVariable && !/^wss?:\/\//i.test(input)) throw new Error('WS 地址须以 ws://、wss:// 或服务器地址变量开头');
     const target = new URL(hostVariable ? `wss://variable.invalid${hostVariable[1] || '/'}` : input);
     if (!target.hostname || target.username || target.password || target.hash) throw new Error('WS 地址无效，请将凭据放在请求头或变量中');

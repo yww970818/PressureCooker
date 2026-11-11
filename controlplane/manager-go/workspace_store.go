@@ -278,10 +278,10 @@ func (p *Platform) saveWorkspace(tx *Tx, table string, data Obj, payload string,
 	}
 	return p.writeWorkspaceProjection(tx, table, data)
 }
-func (p *Platform) workspaceCreate(table string, body Obj) (Obj, error) {
-	return p.workspaceCreateFromPlan(table, body, "")
+func (p *Platform) workspaceCreate(table string, body Obj, imported ...bool) (Obj, error) {
+	return p.workspaceCreateFromPlan(table, body, "", imported...)
 }
-func (p *Platform) workspaceCreateFromPlan(table string, body Obj, sourcePlanID string) (Obj, error) {
+func (p *Platform) workspaceCreateFromPlan(table string, body Obj, sourcePlanID string, imported ...bool) (Obj, error) {
 	data, e := validateWorkspace(table, body)
 	if e != nil {
 		return nil, e
@@ -306,6 +306,11 @@ func (p *Platform) workspaceCreateFromPlan(table string, body Obj, sourcePlanID 
 			return e
 		}
 		if table == "api_collections" {
+			if len(imported) == 0 || !imported[0] {
+				if e := p.validateCollectionResourceParents(tx, nil, obj(data["client_state"])); e != nil {
+					return e
+				}
+			}
 			if e := p.validateCollectionEnvironmentIDs(tx, obj(data["client_state"])); e != nil {
 				return e
 			}

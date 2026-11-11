@@ -219,7 +219,7 @@ func (r *nodeReporter) probe(parent context.Context, worker protocol.Worker, seq
 	}
 	var report protocol.NodeReport
 	var fields map[string]json.RawMessage
-	if json.Unmarshal(raw, &report) != nil || json.Unmarshal(raw, &fields) != nil || report.ID != worker.ID || report.Role != "worker" || (report.Version != 0 && report.Version != 1) {
+	if json.Unmarshal(raw, &report) != nil || json.Unmarshal(raw, &fields) != nil || report.ID != worker.ID || report.Role != "worker" || report.Version != 1 {
 		return failed()
 	}
 	for _, name := range []string{"healthy", "status", "generation", "job"} {
@@ -228,7 +228,6 @@ func (r *nodeReporter) probe(parent context.Context, worker protocol.Worker, seq
 			return failed()
 		}
 	}
-	report.Version = 1
 	report.Sequence = sequence
 	report.ObservedAt = time.Now().UTC().Format(time.RFC3339Nano)
 	if report.DisplayName == "" {

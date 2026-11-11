@@ -100,11 +100,15 @@ it('documents project environment management and explicit task and debug environ
     await fireEvent.click(screen.getByText(name).closest('summary'));
     const environment = (await detail.findByText('environmentId')).closest('tr');
     expect(within(environment).getByText('项目环境标识')).toBeTruthy();
-    expect(within(environment).getByText(name === 'submit_console_task' ? '必填' : '可选')).toBeTruthy();
-    expect(within(environment).getByText(name === 'submit_console_task' ? /所有新任务都必须明确选择/ : /target_source/)).toBeTruthy();
+    expect(within(environment).getByText('可选')).toBeTruthy();
+    expect(within(environment).getByText(name === 'submit_console_task' ? /仅脚本 requires_project_environment=false 时可省略/ : /target_source/)).toBeTruthy();
   }
   const debug = within(screen.getByText('debug_api_request').closest('details'));
   expect(debug.getByText('target_source')).toBeTruthy();
+  expect(debug.getByText('collection_environment_id')).toBeTruthy();
+  for (const name of ['list_api_collection_environments','get_api_collection_environment','create_api_collection_environment','update_api_collection_environment','delete_api_collection_environment']) {
+    expect(screen.getByText(name)).toBeTruthy();
+  }
   expect(debug.queryByText('environment')).toBeNull();
 });
 

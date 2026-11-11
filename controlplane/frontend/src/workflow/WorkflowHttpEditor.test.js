@@ -23,7 +23,7 @@ function graph(reference, bound = false) {
   if (reference) g.nodes.at(-1).properties.api_reference = reference;
   return g;
 }
-const saved = { id: 'collection-1', name: '用户服务', revision: 4, document: { openapi: '3.1.0', info: { title: '用户服务', version: '1' }, servers: [{ url: 'https://saved.example.com' }], paths: { '/users': { get: { summary: '用户查询', parameters: [{ name: 'q', in: 'query', example: '${term}', schema: { type: 'string' } }], responses: {} } } } }, client_state: {} };
+const saved = { id: 'collection-1', name: '用户服务', revision: 4, document: { openapi: '3.1.0', info: { title: '用户服务', version: '1' }, servers: [{ url: 'https://saved.example.com' }], paths: { '/users': { get: { summary: '用户查询', parameters: [{ name: 'q', in: 'query', example: '${term}', schema: { type: 'string' } }], responses: {} } } } }, client_state: {collection_environments:[{id:'collection-env-main',name:'默认集合环境',base_host:'https://saved.example.com',variables:[]}]} };
 const json = (data, status = 200) => new Response(JSON.stringify(data), { status, headers: { 'Content-Type': 'application/json' } });
 let testProject = 0;
 beforeEach(() => setProjectId(`readonly-http-${++testProject}`));
@@ -45,6 +45,7 @@ async function referenceCollection() {
   await screen.findByRole('option', { name: '用户服务 · 版本 4' });
   await fireEvent.update(screen.getByLabelText('引用接口集合'), 'collection-1');
   await ready();
+  const selector=screen.getByRole('combobox',{name:'接口环境',exact:true});const first=[...selector.options].find(option=>option.value);if(first)await fireEvent.update(selector,first.value);
 }
 
 it('browses a detached readonly interface and applies its saved name and exact reference only after confirmation', async () => {
@@ -116,6 +117,7 @@ it('uses each selected saved interface name directly', async () => {
   server({ collection }); render(WorkflowHttpEditor, { props: { graph: graph(), nodeId: 'http' } });
   await referenceCollection(); await screen.findByRole('option', { name: 'POST 创建用户 · /users' });
   await fireEvent.update(screen.getByLabelText('引用已保存请求'), 'post /users');
+  if(screen.queryByRole('button',{name:'放弃修改并切换'}))await fireEvent.click(screen.getByRole('button',{name:'放弃修改并切换'}));
   await waitFor(() => expect(screen.getByRole('textbox', { name: '节点名称', exact: true }).value).toBe('创建用户'));
 });
 it('cancels name and environment choices without changing the original graph', async () => {
@@ -136,25 +138,26 @@ it('rejects an empty node name without applying or closing', async () => {
 it('selects existing interface environment variables and applies the collection override for the selected project ID', async () => {
   const collection = structuredClone(saved);
   collection.document.paths['/users'].get.parameters.push({ name: 'X-Token', in: 'header', schema: { type: 'string' }, example: '{{token}}' });
+  delete collection.client_state.collection_environments;
   collection.client_state.project_environment_overrides = { 'env-test': { variables: [{ name: 'token', value: 'collection-token' }] }, 'env-prod': { variables: [{ name: 'token', value: 'production-token' }] } };
   const environments = [{ id: 'env-test', name: '测试环境', revision: 1, base_host: 'https://test.example/base', variables: [{ name: 'token', value: 'project-token' }] }, { id: 'env-prod', name: '正式环境', revision: 1, base_host: 'https://prod.example/base', variables: [] }];
   server({ collection, environments }); const result = render(WorkflowHttpEditor, { props: { graph: graph(), nodeId: 'http' } });
-  await referenceCollection(); await fireEvent.update(screen.getByRole('combobox', { name: '接口环境', exact: true }), 'env-test');
+  await referenceCollection(); await fireEvent.update(screen.getByRole('combobox', { name: '接口环境', exact: true }), 'legacy-env-test');
   await within(screen.getByRole('region', { name: '接口只读预览' })).findByText('collection-token');
   await fireEvent.click(screen.getByRole('button', { name: '应用到流程' }));
   await waitFor(() => expect(result.emitted().apply).toHaveLength(1));
   const updated = result.emitted().apply[0][0];
-  expect(updated.nodes.find(node => node.id === 'http').properties.config.domain).toBe('test.example');
-  const variables = updated.nodes.find(node => node.properties.http_environment).properties.config.variables;
-  expect(variables).toContainEqual({ name: 'token', value: 'collection-token' });
+  expect(updated.nodes.find(node => node.id === 'http').properties.collection_environment_reference).toEqual({collection_id:'collection-1',revision:4,collection_environment_id:'legacy-env-test'});
+  expect(JSON.stringify(updated)).not.toContain('collection-token');
   expect(JSON.stringify(updated)).not.toContain('production-token');
 });
 it('keeps referenced collection variables scoped without copying preview values into a bound graph', async () => {
   const collection = structuredClone(saved); collection.document.paths['/users'].get.parameters.push({ name: 'local', in: 'query', schema: { type: 'string' }, example: '{{collectionOnly}}' });
+  delete collection.client_state.collection_environments;
   collection.client_state.project_environment_overrides = { 'env-test': { variables: [{ name: 'collectionOnly', value: 'must-not-freeze' }] } };
   const environments = [{ id: 'env-test', name: '测试环境', revision: 1, base_host: 'https://test.example/base', variables: [] }];
   server({ collection, environments }); const result = render(WorkflowHttpEditor, { props: { graph: graph(undefined, true), nodeId: 'http' } });
-  await referenceCollection(); await fireEvent.update(screen.getByRole('combobox', { name: '接口环境', exact: true }), 'env-test');
+  await referenceCollection(); await fireEvent.update(screen.getByRole('combobox', { name: '接口环境', exact: true }), 'legacy-env-test');
   await fireEvent.click(screen.getByRole('button', { name: '应用到流程' }));
   await waitFor(() => expect(result.emitted().apply).toHaveLength(1));
   const updated = result.emitted().apply[0][0]; expect(updated.environment_variables || []).not.toContain('collectionOnly');
@@ -162,7 +165,8 @@ it('keeps referenced collection variables scoped without copying preview values 
 });
 it('loads environment overrides from the exact referenced collection version without refreshing HTTP parameters', async () => {
   const old = structuredClone(saved); old.revision = 2; old.client_state.project_environment_overrides = { 'env-test': { variables: [{ name: 'token', value: 'old-version-token' }] } };
-  const collection = structuredClone(saved); collection.client_state.project_environment_overrides = { 'env-test': { variables: [{ name: 'token', value: 'new-version-token' }] } };
+  const collection = structuredClone(saved); delete collection.client_state.collection_environments;
+  collection.client_state.project_environment_overrides = { 'env-test': { variables: [{ name: 'token', value: 'new-version-token' }] } };
   const environments = [{ id: 'env-test', name: '测试环境', base_host: 'https://test.example', revision: 1, variables: [] }];
   const calls = server({ collection, environments, history: old });
   const initial = graph({ collection_id: saved.id, revision: 2, path: '/users', method: 'get' }); initial.nodes.at(-1).properties.config.path = '/original-snapshot';

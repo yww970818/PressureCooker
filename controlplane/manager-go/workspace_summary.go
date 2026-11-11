@@ -8,7 +8,7 @@ const workspaceSummaryFormat = 1
 // Walk only component tags; do not clone/serialize a graph to count its nodes.
 func workspaceSummary(table string, data Obj) Obj {
 	out := Obj{"summary": true, "summary_format": workspaceSummaryFormat}
-	for _, key := range []string{"id", "project_id", "name", "revision", "created_at", "updated_at", "source_plan_id", "sha256", "size", "requires_environment"} {
+	for _, key := range []string{"id", "project_id", "name", "revision", "created_at", "updated_at", "source_plan_id", "sha256", "size", "requires_environment", "requires_project_environment"} {
 		if value, ok := data[key]; ok {
 			out[key] = value
 		}

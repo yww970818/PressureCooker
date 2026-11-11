@@ -25,6 +25,7 @@ export function validateCollectionEnvironment(resource) {
 }
 export function applyEnvironmentReceipt(draft, saved) {
  if (!draft || draft.id!==saved.id || saved.revision<=draft.revision) return draft;
+ if(saved.revision!==draft.revision+1)throw new Error('集合版本已变化，请保留请求草稿并重新读取合并');
  return {...draft,revision:saved.revision,updated_at:saved.updated_at,client_state:{...draft.client_state,collection_environments:clone(saved.client_state.collection_environments)}};
 }
 // Shared memory holds only saved collection-environment state, never request drafts.

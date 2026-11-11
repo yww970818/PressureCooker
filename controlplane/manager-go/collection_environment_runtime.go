@@ -1,7 +1,9 @@
 package main
 
 import (
+	"encoding/base64"
 	"fmt"
+	"net/url"
 	"regexp"
 	"strings"
 )
@@ -144,8 +146,8 @@ func requiresProjectEnvironment(content string, bindings []any) bool {
 	}
 	targets := 0
 	required := false
-	var walk func(*xmlElement)
-	walk = func(node *xmlElement) {
+	var walk func(*xmlElement, bool)
+	walk = func(node *xmlElement, isolated bool) {
 		if node.attr("enabled") == "false" {
 			return
 		}
@@ -153,6 +155,8 @@ func requiresProjectEnvironment(content string, bindings []any) bool {
 			targets++
 			if len(obj(collectionBindingMetadata(node)["environment_source"])) == 0 {
 				required = true
+			} else {
+				isolated = true
 			}
 		}
 		// User scripts and opaque plugin components may access global environment
@@ -163,24 +167,44 @@ func requiresProjectEnvironment(content string, bindings []any) bool {
 		if (strings.Contains(node.Name.Local, "JSR223") && !websocketComponent(node)) || strings.Contains(node.Name.Local, "BeanShell") || strings.Contains(node.Name.Local, ".") {
 			required = true
 		}
+		if websocketComponent(node) {
+			text := collectionRuntimeReferenceRE.ReplaceAllString(executableXMLText(node), "")
+			if strings.Contains(text, "${__P(jmeter.env.") {
+				required = true
+			}
+			return
+		}
 		if node.Name.Local == "stringProp" && node.attr("name") != apiEnvironmentProp {
 			text := collectionRuntimeReferenceRE.ReplaceAllString(node.text(), "")
 			text = argumentGenerationReferenceRE.ReplaceAllString(text, "")
-			if strings.Contains(text, "${__P(jmeter.env.") || strings.Contains(text, "${base_host}") {
+			if strings.Contains(text, "${__P(jmeter.env.") || strings.Contains(text, "${base_host}") || (!isolated && websocketVariable.MatchString(text)) {
 				required = true
 			}
 		}
 		for _, child := range node.children() {
+			if node.Name.Local == "TestPlan" && child.attr("name") == "TestPlan.user_defined_variables" {
+				for _, raw := range readPairs(child, "Arguments.arguments", "Argument", "Argument") {
+					pair := obj(raw)
+					if pair["name"] == "base_host" && pair["value"] == environmentReference("base_host") {
+						continue
+					}
+					value := str(pair["value"])
+					if websocketVariable.MatchString(value) || strings.Contains(value, "${__P(jmeter.env.") {
+						required = true
+					}
+				}
+				continue
+			}
 			// Compiler-authored global arguments do not imply a dependency unless an
 			// executable component uses their names; metadata names are checked below.
 			if node.Name.Local == "TestPlan" && (child.attr("name") == "TestPlan.user_defined_variables" || child.attr("name") == environmentBindingProp || child.attr("name") == environmentVariablesProp) {
 				continue
 			}
-			walk(child)
+			walk(child, isolated)
 		}
 	}
 	for _, root := range roots {
-		walk(root)
+		walk(root, false)
 	}
 	_, names := workflowEnvironmentMetadata(content)
 	if len(names) > 0 {
@@ -215,4 +239,39 @@ func collectionEnvironmentParameterSnapshots(snapshot Obj, reveal bool) []any {
 		redactCollectionEnvironmentSnapshots(copied)
 	}
 	return arr(copied["collection_environments"])
+}
+
+func bindCollectionWebSocketAddress(component *xmlElement, nodeID string) {
+	property := component.prop(websocketConfigProp)
+	if property == nil {
+		return
+	}
+	config, e := decode([]byte(websocketConfigText(property)))
+	if e != nil {
+		return
+	}
+	for _, key := range []string{"url", "handshakeUrl"} {
+		text := str(config[key])
+		addressKey := "base_host"
+		if key == "url" {
+			addressKey = "ws_base_host"
+		}
+		if strings.HasPrefix(text, "${base_host}") {
+			config[key] = apiEnvironmentAddressReference(nodeID, addressKey) + strings.TrimPrefix(text, "${base_host}")
+			continue
+		}
+		if strings.HasPrefix(text, environmentReference("base_host")) {
+			config[key] = apiEnvironmentAddressReference(nodeID, addressKey) + strings.TrimPrefix(text, environmentReference("base_host"))
+			continue
+		}
+		if u, err := url.Parse(text); err == nil && u.Host != "" && !strings.ContainsAny(u.Host, "${}") {
+			path := u.EscapedPath()
+			path = strings.ReplaceAll(strings.ReplaceAll(path, "%7B", "{"), "%7D", "}")
+			if u.RawQuery != "" {
+				path += "?" + u.RawQuery
+			}
+			config[key] = apiEnvironmentAddressReference(nodeID, addressKey) + path
+		}
+	}
+	property.setText(base64.StdEncoding.EncodeToString(encoded(config)))
 }

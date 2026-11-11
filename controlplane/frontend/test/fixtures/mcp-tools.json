@@ -1941,6 +1941,94 @@
         "openWorldHint": false,
         "readOnlyHint": false
       },
+      "description": "按集合当前revision创建独立环境或持续继承父项目环境；ID由管理端生成。独立环境必须提供base_host，变量空字符串有效。",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "base_host": {
+            "minLength": 1,
+            "pattern": "^https?://",
+            "type": "string"
+          },
+          "collectionEnvironmentId": {
+            "maxLength": 101,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,100}$",
+            "type": "string"
+          },
+          "collectionId": {
+            "maxLength": 101,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,100}$",
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "parent_environment_id": {
+            "pattern": "^environment-[a-f0-9]{32}$",
+            "type": "string"
+          },
+          "projectId": {
+            "maxLength": 101,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,100}$",
+            "type": "string"
+          },
+          "revision": {
+            "minimum": 1,
+            "type": "integer"
+          },
+          "variables": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "name": {
+                  "maxLength": 200,
+                  "minLength": 1,
+                  "not": {
+                    "enum": [
+                      "base_host"
+                    ],
+                    "type": "string"
+                  },
+                  "type": "string"
+                },
+                "value": {
+                  "description": "固定文本，或完整随机规则 {{$random.uuid}}、{{$random.hex(N)}}、{{$random.alnum(N)}}、{{$random.digits(N)}}（N为1至256且无前导零），或自动规则 {{$auto.client_ip}}、{{$auto.timestamp_ms}}。变量名任意；client_ip取本次调用的实际HTTP来源IP，不信任XFF，来源不可用时报错；timestamp_ms为当前毫秒时间戳字符串。规则原文保存，合并后每次连接/调试/任务快照解析一次，同次操作共享、任务重试复用冻结快照；禁止嵌入文本、脚本和其他规则语法，逐线程身份使用数据集。",
+                  "maxLength": 4096,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "name",
+                "value"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "projectId",
+          "collectionId",
+          "revision",
+          "name"
+        ],
+        "type": "object"
+      },
+      "name": "create_api_collection_environment"
+    },
+    {
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
       "description": "按集合当前版本新增接口，保留完整 OpenAPI 操作对象。",
       "inputSchema": {
         "additionalProperties": false,
@@ -2404,11 +2492,17 @@
         "openWorldHint": true,
         "readOnlyHint": false
       },
-      "description": "通过管理端有界 HTTP 代理调试本项目接口；target_source 必须明确选择项目环境或文档服务地址。",
+      "description": "通过管理端有界 HTTP 代理调试本项目接口；target_source 优先选择 collection_environment 并指定 collection_environment_id；旧项目环境及文档地址保持显式兼容，目标参数互斥。",
       "inputSchema": {
         "additionalProperties": false,
         "properties": {
           "collectionId": {
+            "maxLength": 101,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,100}$",
+            "type": "string"
+          },
+          "collection_environment_id": {
             "maxLength": 101,
             "minLength": 1,
             "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,100}$",
@@ -2445,6 +2539,7 @@
           },
           "target_source": {
             "enum": [
+              "collection_environment",
               "project_environment",
               "document_server"
             ],
@@ -2497,6 +2592,50 @@
         "type": "object"
       },
       "name": "delete_api_collection"
+    },
+    {
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
+      "description": "按集合当前revision删除集合环境；历史集合修订与已提交任务快照保留，不自动选择其他环境。",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "collectionEnvironmentId": {
+            "maxLength": 101,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,100}$",
+            "type": "string"
+          },
+          "collectionId": {
+            "maxLength": 101,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,100}$",
+            "type": "string"
+          },
+          "projectId": {
+            "maxLength": 101,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,100}$",
+            "type": "string"
+          },
+          "revision": {
+            "minimum": 1,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "projectId",
+          "collectionId",
+          "collectionEnvironmentId",
+          "revision"
+        ],
+        "type": "object"
+      },
+      "name": "delete_api_collection_environment"
     },
     {
       "annotations": {
@@ -3206,6 +3345,45 @@
         "type": "object"
       },
       "name": "get_api_collection"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "description": "读取集合环境自有配置与当前父项目环境合并的生效值。",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "collectionEnvironmentId": {
+            "maxLength": 101,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,100}$",
+            "type": "string"
+          },
+          "collectionId": {
+            "maxLength": 101,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,100}$",
+            "type": "string"
+          },
+          "projectId": {
+            "maxLength": 101,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,100}$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "projectId",
+          "collectionId",
+          "collectionEnvironmentId"
+        ],
+        "type": "object"
+      },
+      "name": "get_api_collection_environment"
     },
     {
       "annotations": {
@@ -3939,6 +4117,38 @@
         "type": "object"
       },
       "name": "install_interface_plugin"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "description": "列出当前集合专属环境；旧覆盖仅在新字段缺失时投影，包含父环境可用状态。",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "collectionId": {
+            "maxLength": 101,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,100}$",
+            "type": "string"
+          },
+          "projectId": {
+            "maxLength": 101,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,100}$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "projectId",
+          "collectionId"
+        ],
+        "type": "object"
+      },
+      "name": "list_api_collection_environments"
     },
     {
       "annotations": {
@@ -5168,7 +5378,7 @@
         "openWorldHint": false,
         "readOnlyHint": false
       },
-      "description": "使用与控制台相同的管理端队列提交任务。所有新任务必须明确提供 environmentId；CSV脚本须提供 datasetSelections，支持copy/shard和每节点多个文件；timeoutSeconds 10至86400。脚本身份使用 pressurecooker.script_identities schema_version=1 声明，字段含name/type/secret/required；properties按script_identity.\u003c身份名\u003e.\u003c声明字段\u003e配置，最多20条身份；认证如何使用由脚本决定，旧Cookie身份脚本须显式转换并重新发布。身份名以字母开头，最多40个字母、数字、下划线或短横线。脚本选择身份，平台不自动轮询。全局属性合计最多100项，每值4096字符且身份字段为单行文本。任务固定环境快照；必须选择 clusterId，只使用所选集群控制器；省略 workers 时由服务端固定该集群全部关联节点，各节点执行完整 JMX，必须提供稳定幂等标识并在重试时复用参数。",
+      "description": "使用与控制台相同的管理端队列提交任务。仅当已发布脚本的 requires_project_environment 明确为 false 时可省略 environmentId，旧脚本及未完全绑定流程仍须提供；CSV脚本须提供 datasetSelections，支持copy/shard和每节点多个文件；timeoutSeconds 10至86400。脚本身份使用 pressurecooker.script_identities schema_version=1 声明，字段含name/type/secret/required；properties按script_identity.\u003c身份名\u003e.\u003c声明字段\u003e配置，最多20条身份；认证如何使用由脚本决定，旧Cookie身份脚本须显式转换并重新发布。身份名以字母开头，最多40个字母、数字、下划线或短横线。脚本选择身份，平台不自动轮询。全局属性合计最多100项，每值4096字符且身份字段为单行文本。任务固定环境快照；必须选择 clusterId，只使用所选集群控制器；省略 workers 时由服务端固定该集群全部关联节点，各节点执行完整 JMX，必须提供稳定幂等标识并在重试时复用参数。",
       "inputSchema": {
         "additionalProperties": false,
         "allOf": [
@@ -5330,8 +5540,7 @@
           "clusterId",
           "managerPlanId",
           "name",
-          "idempotencyKey",
-          "environmentId"
+          "idempotencyKey"
         ],
         "type": "object"
       },
@@ -5431,6 +5640,95 @@
         "type": "object"
       },
       "name": "update_api_collection"
+    },
+    {
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
+      "description": "按集合当前revision替换指定集合环境的自有配置；省略base_host恢复父地址继承，省略父ID解除继承时须提供base_host。",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "base_host": {
+            "minLength": 1,
+            "pattern": "^https?://",
+            "type": "string"
+          },
+          "collectionEnvironmentId": {
+            "maxLength": 101,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,100}$",
+            "type": "string"
+          },
+          "collectionId": {
+            "maxLength": 101,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,100}$",
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "parent_environment_id": {
+            "pattern": "^environment-[a-f0-9]{32}$",
+            "type": "string"
+          },
+          "projectId": {
+            "maxLength": 101,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,100}$",
+            "type": "string"
+          },
+          "revision": {
+            "minimum": 1,
+            "type": "integer"
+          },
+          "variables": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "name": {
+                  "maxLength": 200,
+                  "minLength": 1,
+                  "not": {
+                    "enum": [
+                      "base_host"
+                    ],
+                    "type": "string"
+                  },
+                  "type": "string"
+                },
+                "value": {
+                  "description": "固定文本，或完整随机规则 {{$random.uuid}}、{{$random.hex(N)}}、{{$random.alnum(N)}}、{{$random.digits(N)}}（N为1至256且无前导零），或自动规则 {{$auto.client_ip}}、{{$auto.timestamp_ms}}。变量名任意；client_ip取本次调用的实际HTTP来源IP，不信任XFF，来源不可用时报错；timestamp_ms为当前毫秒时间戳字符串。规则原文保存，合并后每次连接/调试/任务快照解析一次，同次操作共享、任务重试复用冻结快照；禁止嵌入文本、脚本和其他规则语法，逐线程身份使用数据集。",
+                  "maxLength": 4096,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "name",
+                "value"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "projectId",
+          "collectionId",
+          "collectionEnvironmentId",
+          "revision",
+          "name"
+        ],
+        "type": "object"
+      },
+      "name": "update_api_collection_environment"
     },
     {
       "annotations": {
@@ -6992,5 +7290,5 @@
       "name": "write_pressure_report_middleware"
     }
   ],
-  "total": 134
+  "total": 139
 }

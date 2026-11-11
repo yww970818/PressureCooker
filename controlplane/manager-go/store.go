@@ -312,6 +312,9 @@ func (p *Platform) preparePlanWithLimit(m Obj, limit int) (Obj, error) {
 		switch t := token.(type) {
 		case xml.StartElement:
 			if depth == 0 {
+				if t.Name.Local != "jmeterTestPlan" || t.Name.Space != "" {
+					return nil, api(400, "invalid_jmx", "脚本根元素须为JMeter的jmeterTestPlan")
+				}
 				roots++
 			}
 			depth++

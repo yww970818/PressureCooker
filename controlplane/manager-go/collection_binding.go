@@ -22,7 +22,7 @@ func apiEnvironmentAddressReference(nodeID, name string) string {
 	return "${__P(" + apiEnvironmentAddressProperty(nodeID, name) + ",)}"
 }
 
-var collectionAddressKeys = []string{"base_host", "protocol", "host", "port", "base_path"}
+var collectionAddressKeys = []string{"base_host", "protocol", "host", "port", "base_path", "ws_base_host"}
 
 func apiEnvironmentReference(nodeID, name string) string {
 	return "${__P(" + apiEnvironmentProperty(nodeID, name) + ",)}"
@@ -156,6 +156,8 @@ func bindCollectionNode(node *workflowNode, component, children *xmlElement, gra
 	if len(environmentRef) > 0 {
 		if node.Component == "HTTPSamplerProxy" {
 			bindEnvironmentXML(component, nil)
+		} else {
+			bindCollectionWebSocketAddress(component, node.ID)
 		}
 		for _, key := range collectionAddressKeys {
 			replacements["${__P(jmeter.env."+key+",)}"] = apiEnvironmentAddressReference(node.ID, key)

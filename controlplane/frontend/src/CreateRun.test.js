@@ -12,6 +12,14 @@ function setup(fail=false){const writes=[];vi.stubGlobal('fetch',async(url,init)
 async function ready(){await screen.findByRole('option',{name:/脚本.jmx/});for(const [label,value]of [['任务名称','新任务'],['脚本版本','p'],['执行环境','e'],['执行集群','c']])await fireEvent.update(screen.getByLabelText(label),value);}
 async function custom(index,key,value){await fireEvent.click(screen.getByRole('button',{name:'添加自定义属性'}));await fireEvent.update(screen.getByLabelText(`第 ${index} 个自定义属性名称`),key);await fireEvent.update(screen.getByLabelText(`第 ${index} 个自定义属性值`),value);}
 afterEach(()=>{cleanup();setProjectId('project-default');vi.unstubAllGlobals();});
+it('allows omitting the task project environment only for an explicitly independent published plan',async()=>{
+ const writes=setup();const fetch=globalThis.fetch;vi.stubGlobal('fetch',async(url,init)=>String(url).split('?')[0]==='/api/plans'&&init.method==='GET'?response({items:[{id:'p',name:'脚本.jmx',requires_project_environment:false}]}):fetch(url,init));
+ render(CreateRun);await screen.findByRole('option',{name:/脚本.jmx/});
+ for(const [label,value]of [['任务名称','集合环境任务'],['脚本版本','p'],['执行集群','c']])await fireEvent.update(screen.getByLabelText(label),value);
+ expect(await screen.findByText('此脚本全部目标已绑定集合环境，可省略项目环境。')).toBeTruthy();
+ await screen.findByText('此脚本没有托管 CSV 数据节点。');
+ await fireEvent.click(screen.getByRole('button',{name:'创建并排队执行'}));await waitFor(()=>expect(writes).toHaveLength(1));expect(writes[0].body.environment_id).toBe('');
+});
 function historyFetch(run) { return async url => response(url.includes('/parameters') ? {environment:run.environment_snapshot,properties:Object.entries(run.properties||{}).map(([name,value])=>({name,value,sensitive:/password|passwd|secret|token|credential|authorization|api[-_.]?key|cookie/i.test(name)})),environment_variables:(run.environment_snapshot?.variables||[]).map(row=>({...row,sensitive:/password|passwd|secret|token|credential|authorization|api[-_.]?key|cookie/i.test(row.name)})),api_overrides:[]} : run); }
 const copiedConfig = () => ({copy_source_run_id:'run-old',copy_environment_snapshot:true,name:'历史任务（副本）',plan_id:'p',environment_id:'e',cluster_id:'c',workers:['w2'],notes:'原备注',timeout_seconds:75,properties:{threads:'7',cookie:'session=old-copy',empty:'',payload:' a=b\nvalue '},dataset_selections:[],environment_snapshot:{id:'e',name:'旧测试环境',revision:1,base_host:'https://old.example',variables:[{name:'cookie',value:'***'}]}});
 function archivedCopySetup({status=200,project='project-default',visible=[]}={}){

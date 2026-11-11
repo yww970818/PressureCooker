@@ -68,7 +68,7 @@ WebSocket 的 `socketio` 选项仅处理传统 Socket.IO 动态握手、`{socket
 }
 ```
 
-该工具只调用相同的 `POST /api/runs`，发布版本映射为 `plan_id`，项目环境标识映射为 `environment_id`，幂等标识映射为 `Idempotency-Key`。所有新任务必须明确提供 `environmentId`，缺少时由 schema 和管理端拒绝。管理端在提交时固定环境快照，任务响应中的 `environment_id` 和 `environment_snapshot` 原样返回。必须传递 `clusterId`，映射为 `cluster_id`；只使用该集群控制器。省略节点时保持 `workers` 字段省略，由管理端在幂等检查之后固定所选集群全部关联 worker，每个节点执行完整 JMX；同一请求重试必须复用标识和参数，并复用原任务快照。全局属性不能覆盖 `base_host` 和平台保留运行参数。`list_executions`、`get_execution_status`、`stop_execution`、`get_execution_log` 和 `list_execution_artifacts` 均要求同一项目，保留有界日志、正常停止/立即终止及原始 JTL/日志归档查询。
+该工具只调用相同的 `POST /api/runs`，发布版本映射为 `plan_id`，项目环境标识映射为 `environment_id`，幂等标识映射为 `Idempotency-Key`。仅当发布脚本 `requires_project_environment` 明确为 false 时可以省略 `environmentId`；旧脚本、未绑定节点和无法证明独立的扩展仍由管理端要求项目环境。管理端在提交时固定环境快照，任务响应中的 `environment_id` 和 `environment_snapshot` 原样返回。必须传递 `clusterId`，映射为 `cluster_id`；只使用该集群控制器。省略节点时保持 `workers` 字段省略，由管理端在幂等检查之后固定所选集群全部关联 worker，每个节点执行完整 JMX；同一请求重试必须复用标识和参数，并复用原任务快照。全局属性不能覆盖 `base_host` 和平台保留运行参数。`list_executions`、`get_execution_status`、`stop_execution`、`get_execution_log` 和 `list_execution_artifacts` 均要求同一项目，保留有界日志、正常停止/立即终止及原始 JTL/日志归档查询。
 
 复制已有任务先调用 `get_execution_copy_config(executionId)` 读取可编辑配置，再提交新任务；可传 `copySourceExecutionId` 和 `copyEnvironmentSnapshot:true` 选择历史环境快照，后者要求同时提供来源任务。每个新任务使用新的 `idempotencyKey`，仅同一提交重试复用旧键。原始文件清单以管理端实际返回为准，包含 JTL、执行日志及按节点采集的线程观察原件；历史不可变文件回执继续按任务归属读取。
 
@@ -141,8 +141,8 @@ WebSocket 的 `socketio` 选项仅处理传统 Socket.IO 动态握手、`{socket
 | cURL、Postman、Apifox、OpenAPI 文本导入 | `import_api_collection`，参数 `format`、`content`、可选 `name`；cURL 只解析文本 |
 | OpenAPI 或 Postman 原文导出 | `export_api_collection`，参数 `collectionId`、`format` |
 | 新增或修改完整 OpenAPI 请求 | `create_api_request`、`update_api_request`；`revision`、`path`、`method`、`operation`；路径/方法变更时传 `previous_path`、`previous_method` |
-| 经管理端调试接口 | `debug_api_request`；`path`、`method`、必填 `target_source`、可选 `environmentId` 和 `variables`；项目环境模式必须提供环境标识，文档服务模式禁止提供环境标识 |
-| 集合环境变量覆盖 | `set_api_environments`；`collectionId`、`revision`、稳定的项目 `environmentId`、`variables:[{name,value}]`；仅替换此 ID 的覆盖；`variables:[]` 清空覆盖并恢复继承项目同名变量，自定义变量可为空字符串，`base_host` 被拒绝 |
+| 经管理端调试接口 | `debug_api_request`；`path`、`method`、必填 `target_source`；新模式 `collection_environment` 要求 `collection_environment_id`，旧项目模式要求 `environmentId`，文档模式禁止环境标识；可选 `variables` |
+| 旧项目环境变量覆盖（兼容） | `set_api_environments`；`collectionId`、`revision`、稳定的项目 `environmentId`、`variables:[{name,value}]`；仅替换此 ID 的覆盖；`variables:[]` 清空覆盖并恢复继承项目同名变量，自定义变量可为空字符串，`base_host` 被拒绝 |
 | 集合设置 | `update_api_collection_settings`；`revision`、可选 `name`、`description`、`servers`、`client_state` |
 | 历史版本列表、固定版本 | `list_api_collection_versions`、`get_api_collection_version`（`collectionId`、`revision`） |
 
@@ -162,9 +162,9 @@ JMETER_MCP_TEST_BINARY=/tmp/jmeter-mcp npm test
 
 Go 集成测试启动真实官方 Node authoring 进程，校验项目归属、重启持久化、协议工具表和前端 fixture。仅在有意更新实时 schema 时于 `mcp-go` 运行 `go test -run TestLiveToolCatalog -update-mcp-fixture`，随后运行前端 MCP 与中文化测试。相邻 `mcp/` 目录只保存锁定第三方依赖与协议测试，不承载自研运行服务。
 
-集合环境继承项目环境列表和服务器地址。调试必须显式选择 `target_source`：`project_environment` 同时提供 `environmentId`，按项目变量 → 集合对应环境覆盖 → 本次显式 `variables` 合并，地址固定为项目环境地址；`document_server` 使用 OpenAPI 文档服务地址与本次显式变量，禁止同时提供环境标识。旧 `environment` 调试参数已拒绝，导入的历史活动环境不自动选择执行目标。
+以下为旧项目覆盖模式的显式兼容契约；新集合环境见下文。调试必须显式选择 `target_source`：`project_environment` 同时提供 `environmentId`，按项目变量 → 集合对应环境覆盖 → 本次显式 `variables` 合并，地址固定为项目环境地址；`document_server` 使用 OpenAPI 文档服务地址与本次显式变量，禁止同时提供环境标识。旧 `environment` 调试参数已拒绝，导入的历史活动环境不自动选择执行目标。
 
-集合 JSON 的稳定存储契约是 `client_state.project_environment_overrides[environmentId]={variables:[{name,value}]}`，由集合 AES-GCM/revision/历史及导入导出机制保留。其他项目、删除或未知的 ID 被拒绝。项目环境删除同一事务清理当前集合并增加集合版本；旧版本保留且无法重新保存已删 ID。原 `x-scalar-environments` 和 `workspace_environments` 仅作历史兼容，界面不按旧名称自动迁移，需在正确项目环境中手动录入自定义覆盖，不采用旧地址。
+旧集合覆盖的存储契约是 `client_state.project_environment_overrides[environmentId]={variables:[{name,value}]}`，由集合 AES-GCM/revision/历史及导入导出机制保留。其他项目、删除或未知的 ID 被拒绝。项目环境删除同一事务清理当前集合并增加集合版本；旧版本保留且无法重新保存已删 ID。原 `x-scalar-environments` 和 `workspace_environments` 仅作历史兼容，界面不按旧名称自动迁移，需在正确项目环境中手动录入自定义覆盖，不采用旧地址。
 
 Redis任务附加参数：`datasetSelections:[{node_id,dataset_ids:[],distribution:"copy"|"shard"}]` 和 `timeoutSeconds`（10至86400，默认3600）。全部参数仅映射到管理端同一提交接口；不提供直接代理执行绕过。任务响应保留 `datasets`、`dispatch`、`callback_delivery` 和冻结的环境/集群/文件元数据。
 
@@ -192,3 +192,11 @@ Redis任务附加参数：`datasetSelections:[{node_id,dataset_ids:[],distributi
 | `clear_pressure_reports` | `confirm: true` | 当前项目全部报告 |
 
 清空不受列表筛选或分页限制；不接受跨项目通配参数。单条/批量任务包含未结束记录时整次拒绝，跨项目或不存在记录同样整批拒绝。报告独立删除保留任务、原始 JTL/日志及其他报告，任务删除会级联关联报告与产物。归档项目禁止删除。全部工具标记为 destructive，返回管理端的 `deleted_count`、`skipped_count`、`cleanup_pending`（报告单独删除为0）；物理产物可在后台重试清理。
+
+## 独立集合环境
+
+使用 `list_api_collection_environments`、`get_api_collection_environment`、`create_api_collection_environment`、`update_api_collection_environment` 和 `delete_api_collection_environment`。全部要求 `projectId`、`collectionId`；单资源读取/修改/删除要求 `collectionEnvironmentId`，写入要求集合 `revision`，创建/修改要求 `name`。`parent_environment_id` 可选，`base_host` 可覆盖父地址，无父环境时必填；`variables` 仅保存自有覆盖，空字符串有效。ID 由管理端生成，成功回执含更新集合及环境。
+
+`debug_api_request` 新模式使用 `target_source=collection_environment`、`collection_environment_id`。管理端校验集合与项目归属，合并当前父环境、自有覆盖及本次显式变量，固定生成值后调试；本次普通变量不能改变基础地址。不可同时传 `environmentId` 或旧目标。`set_api_environments` 仍保存旧项目环境ID对应覆盖，其参数身份没有改变。
+
+流程节点的新 `collection_environment_reference` 独立于 `api_reference`，含集合 ID、精确 `revision`、集合环境 ID。任务冻结每个节点的集合/父环境来源及节点运行属性；全部可证明独立的目标才会返回 `requires_project_environment:false`，其他脚本仍要求任务项目环境。复制任务沿用原有显式历史快照选项；不得自行根据名称替换已失效环境。

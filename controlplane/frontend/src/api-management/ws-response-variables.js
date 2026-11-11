@@ -50,7 +50,7 @@ function matches(candidate, condition, read, context) {
   if (actual === undefined) return false;
   const equal = expected => {
     let missing = false, dynamic = false;
-    if (typeof expected === 'string') expected = expected.replace(/\{\{\s*([\w.-]+)\s*\}\}/g, (_, name) => {
+    if (typeof expected === 'string') expected = expected.replace(/\{\{\s*([\p{L}\p{N}_.-]+)\s*\}\}/gu, (_, name) => {
       dynamic = true;
       if (!Object.hasOwn(context, name) || context[name] == null || String(context[name]).includes('{{')) { missing = true; return ''; }
       return String(context[name]);

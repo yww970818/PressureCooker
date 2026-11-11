@@ -52,7 +52,7 @@ func (h Handler) workspaceRoute(w http.ResponseWriter, r *http.Request, method s
 		if e != nil {
 			return true, e
 		}
-		value, e := h.P.workspaceCreate(table, input)
+		value, e := h.P.workspaceCreate(table, input, true)
 		return send(201, value, e)
 	}
 	if table == "workflows" && id == "preview" && len(parts) == 3 {

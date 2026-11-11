@@ -15,7 +15,7 @@ import { responsePlugins } from './response-plugin.js';
 import { useTheme } from '../theme.js';
 import { environmentDefaultUrl } from './environments.js';
 
-const props = defineProps({ document: { type: Object, required: true }, clientState: { type: Object, default: () => ({}) }, request: Object, mode: { type: String, default: 'direct' }, view: { type: String, default: 'request' }, saveHandler: Function, saving: Boolean, hideRequestName: Boolean, projectEnvironment: Object, hideLegacyEnvironment: Boolean, projectEnvironments: Array, projectEnvironmentsLoading: Boolean, deletedProjectEnvironmentIds: { type: Array, default: () => [] } });
+const props = defineProps({ document: { type: Object, required: true }, clientState: { type: Object, default: () => ({}) }, request: Object, mode: { type: String, default: 'direct' }, view: { type: String, default: 'request' }, saveHandler: Function, saving: Boolean, hideRequestName: Boolean, projectEnvironment: Object, hideLegacyEnvironment: Boolean, requireCollectionEnvironment: Boolean, projectEnvironments: Array, projectEnvironmentsLoading: Boolean, deletedProjectEnvironmentIds: { type: Array, default: () => [] } });
 const emit = defineEmits(['change', 'settings', 'environment', 'ready', 'error', 'request', 'update:mode', 'select-environment']);
 const { resolvedTheme } = useTheme();
 const currentRequest = ref(props.request);
@@ -33,7 +33,7 @@ watch(currentRequest,()=>{session.value?.clearTransportStatus();});
 const activeExample = computed(() => examples.value.includes(example.value) ? example.value : examples.value[0]);
 watch([session,activeExample],([next,name])=>next?.setRequestExample(name),{immediate:true,flush:'sync'});
 const environment = computed(() => session.value?.activeEnvironment());
-watch(() => [props.projectEnvironment, props.hideLegacyEnvironment || props.projectEnvironments !== undefined], ([value, exclusive]) => session.value?.setProjectEnvironment(value, { exclusive }), { deep: true });
+watch(() => [props.projectEnvironment, props.hideLegacyEnvironment || props.projectEnvironments !== undefined], ([value, exclusive]) => session.value?.setProjectEnvironment(value, { exclusive, label: props.requireCollectionEnvironment?'集合环境':'项目环境' }), { deep: true });
 const environmentEditor = ref(null);
 const environments = computed(() => session.value?.environmentState() || {});
 const defaultEnvironmentUrl = computed(() => environmentDefaultUrl(document.value, currentRequest.value));
@@ -59,7 +59,7 @@ onMounted(async () => {
       else if (payload.page === 'example') { example.value = payload.exampleName || 'default'; payload.callback?.('success'); }
     }, reason => emit('error', reason), request => { currentRequest.value = request; emit('request', request); });
     if (disposed) { next.dispose(); return; }
-    next.setProjectEnvironment(props.projectEnvironment, { exclusive: props.hideLegacyEnvironment || props.projectEnvironments !== undefined }); next.pruneProjectOverrides(props.deletedProjectEnvironmentIds); session.value = next; emit('ready');
+    next.setProjectEnvironment(props.projectEnvironment, { exclusive: props.hideLegacyEnvironment || props.projectEnvironments !== undefined, label:props.requireCollectionEnvironment?'集合环境':'项目环境' }); next.pruneProjectOverrides(props.deletedProjectEnvironmentIds); session.value = next; emit('ready');
   } catch (reason) { error.value = reason.message; emit('error', reason); }
 });
 onBeforeUnmount(() => { disposed = true; session.value?.dispose(); });

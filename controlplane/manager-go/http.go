@@ -247,7 +247,7 @@ func (h Handler) route(w http.ResponseWriter, r *http.Request) error {
 	}
 	r = r.WithContext(withEnvironmentOperation(r.Context(), operation))
 	body := Obj{}
-	if (method == "POST" || method == "PUT" || (method == "DELETE" && (interfacePluginPath(r.URL.Path) || workflowExtensionPath(r.URL.Path)))) && !strings.HasPrefix(r.Header.Get("Content-Type"), "multipart/form-data") {
+	if (method == "POST" || method == "PUT" || (method == "DELETE" && (interfacePluginPath(r.URL.Path) || workflowExtensionPath(r.URL.Path) || collectionEnvironmentResourcePath(r.URL.Path)))) && !strings.HasPrefix(r.Header.Get("Content-Type"), "multipart/form-data") {
 		body, e = readJSON(r)
 		if e != nil {
 			return e

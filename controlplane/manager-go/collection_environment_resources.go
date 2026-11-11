@@ -7,6 +7,11 @@ import (
 
 const collectionEnvironmentsKey = "collection_environments"
 
+func collectionEnvironmentResourcePath(path string) bool {
+	parts := strings.Split(strings.Trim(path, "/"), "/")
+	return len(parts) == 5 && parts[0] == "api" && parts[1] == "api-collections" && parts[3] == "collection-environments"
+}
+
 // Resources remain part of encrypted, versioned collection state. An explicit
 // empty array is authoritative and prevents deleted legacy projections returning.
 func validateCollectionEnvironmentResources(client Obj) error {
@@ -75,6 +80,12 @@ func collectionEnvironmentResource(collection Obj, id string) (Obj, error) {
 		row := obj(raw)
 		if row["id"] == id {
 			return row, nil
+		}
+	}
+	if _, authoritative := obj(collection["client_state"])[collectionEnvironmentsKey]; !authoritative && strings.HasPrefix(id, "legacy-") {
+		parent := strings.TrimPrefix(id, "legacy-")
+		if entry, present := obj(obj(collection["client_state"])[collectionOverridesKey])[parent]; present {
+			return Obj{"id": id, "name": parent, "parent_environment_id": parent, "variables": obj(entry)["variables"]}, nil
 		}
 	}
 	return nil, api(404, "collection_environment_not_found", "集合环境不存在，请重新选择")

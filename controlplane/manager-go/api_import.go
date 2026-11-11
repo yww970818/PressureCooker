@@ -670,6 +670,18 @@ func exportPostman(collection Obj) (Obj, error) {
 			requestPath := path
 			pathVariables := []any{}
 			query := []any{}
+			serverPath, serverQuery, _ := strings.Cut(server, "?")
+			if serverQuery != "" {
+				for _, part := range strings.Split(serverQuery, "&") {
+					key, value, _ := strings.Cut(part, "=")
+					key, keyErr := url.QueryUnescape(key)
+					value, valueErr := url.QueryUnescape(value)
+					if keyErr != nil || valueErr != nil {
+						return nil, importError("查询参数编码无效")
+					}
+					query = append(query, Obj{"key": key, "value": value})
+				}
+			}
 			params := append(append([]any{}, arr(entry["parameters"])...), arr(operation["parameters"])...)
 			for _, v := range params {
 				param := obj(v)
@@ -697,7 +709,7 @@ func exportPostman(collection Obj) (Obj, error) {
 				request["body"] = Obj{"mode": "raw", "raw": body}
 				request["header"] = append(arr(request["header"]), Obj{"key": "Content-Type", "value": contentType})
 			}
-			raw := strings.TrimSuffix(server, "/") + requestPath
+			raw := strings.TrimSuffix(serverPath, "/") + requestPath
 			parts := []string{}
 			for _, q := range query {
 				m := obj(q)

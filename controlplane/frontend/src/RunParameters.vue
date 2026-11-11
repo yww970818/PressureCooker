@@ -14,8 +14,9 @@ const execute=computed(()=>resource.data?.execution||{});
 const globals=computed(()=>Array.isArray(resource.data?.properties)?resource.data.properties:[]);
 const variables=computed(()=>Array.isArray(resource.data?.environment_variables)?resource.data.environment_variables:[]);
 const overrides=computed(()=>resource.data?.api_overrides||[]);
+const collectionEnvironments=computed(()=>resource.data?.collection_environments||props.run.environment_snapshot?.collection_environments||[]);
 const executionRows=computed(()=>[
- ['执行环境',environment.value.name?`${environment.value.name} · 版本 ${environment.value.revision??'—'}`:props.run.environment_id?'已绑定项目环境（摘要待读取）':'历史任务未记录项目环境'],
+ ['执行环境',environment.value.name?`${environment.value.name} · 版本 ${environment.value.revision??'—'}`:props.run.environment_id?'已绑定项目环境（摘要待读取）':collectionEnvironments.value.length?'使用节点集合环境':'历史任务未记录项目环境'],
  ['服务器地址',environment.value.base_host||'未记录'],['脚本版本',props.run.plan_name||props.run.plan_id||'未记录'],['脚本 SHA256',props.run.plan_sha256||'未记录'],
  ['执行集群',runClusterName(props.run)],['PressureCooker-Core',runController(props.run)],['执行节点',props.run.workers?.join('、')||'未记录'],['任务超时',props.run.timeout_seconds?`${props.run.timeout_seconds} 秒`:'未记录'],
  ['结果回调地址',execute.value.callback_url||'未记录'],['创建时间',dateTime(props.run.created_at)],['开始时间',dateTime(props.run.started_at)],['结束时间',dateTime(props.run.finished_at)],
@@ -31,6 +32,7 @@ defineExpose({hasOpenDialog:()=>Boolean(selectedFile.value)});
   <div class="run-parameters-heading"><div><h3>执行参数与数据</h3><p>记录本次实际使用的环境、参数和数据文件，后续配置修改不会改变这些记录。</p></div><Button @click="revealed=!revealed">{{ revealed?'隐藏敏感值':'显示敏感值' }}</Button></div>
   <ErrorBox :error="resource.error" :retry="resource.refresh"/><Loading v-if="resource.loading&&!resource.data"/>
   <RunParameterTable label="执行配置" :rows="executionRows"/>
+  <section v-if="collectionEnvironments.length" class="run-frozen-data" aria-label="节点集合环境来源"><h4>节点集合环境来源</h4><div v-for="item in collectionEnvironments" :key="item.node_id"><p>{{item.node_id}} · {{item.name}} · {{item.collection_id}} 版本 {{item.collection_revision}}</p><p>{{item.base_host}} · {{item.parent_environment_id?`父环境 ${item.parent_environment_id} 版本 ${item.parent_environment_revision}`:'独立环境'}}</p></div></section>
   <RunParameterTable label="项目环境参数" :rows="variables" :revealed="revealed"/>
   <RunParameterTable v-if="overrides.length" label="接口生效参数" :rows="overrides" :revealed="revealed"/>
   <RunParameterTable label="任务全局属性" :rows="globals" :revealed="revealed"/>
