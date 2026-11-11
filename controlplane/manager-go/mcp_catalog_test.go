@@ -40,7 +40,7 @@ func catalogPlatform(t *testing.T, endpoint string) *Platform {
 		t.Fatal(e)
 	}
 	t.Cleanup(func() { db.Close() })
-	return &Platform{Config: Config{AdminToken: "catalog-admin-secret", SessionKey: "test-session-key", MCPPublicURL: "http://home.yanww.top:18091/mcp", mcpCatalogTestURL: endpoint}, DB: &Database{DB: db}}
+	return &Platform{Config: Config{AdminToken: "catalog-admin-secret", SessionKey: "test-session-key", MCPPublicURL: "http://pressurecooker.example:18091/mcp", mcpCatalogTestURL: endpoint}, DB: &Database{DB: db}}
 }
 func catalogRequest(t *testing.T, p *Platform, authorization string) (int, Obj) {
 	t.Helper()
@@ -107,7 +107,7 @@ func TestMCPCatalogAuthenticationAndConnectedTools(t *testing.T) {
 		t.Fatal("invalid bearer catalog", status)
 	}
 	status, result := catalogRequest(t, p, "Bearer catalog-admin-secret")
-	if status != 200 || !boolean(result["available"]) || number(result["total"]) != 1 || str(result["endpoint"]) != "http://home.yanww.top:18091/mcp" || result["protocol"] != "streamable-http" || result["authentication"] != "bearer" {
+	if status != 200 || !boolean(result["available"]) || number(result["total"]) != 1 || str(result["endpoint"]) != "http://pressurecooker.example:18091/mcp" || result["protocol"] != "streamable-http" || result["authentication"] != "bearer" {
 		t.Fatal(status, result)
 	}
 	if strings.Contains(string(encoded(result)), "catalog-admin-secret") || obj(result["server"])["name"] != "jmeter-mcp" {
