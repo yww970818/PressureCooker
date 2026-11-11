@@ -29,3 +29,10 @@ it('shows reserved authentication from the script without presenting Cookie cred
  expect(screen.queryByLabelText('身份 1 Cookie')).toBeNull();
  expect(screen.queryByLabelText('身份 1 Token')).toBeNull();
 });
+
+it('renders and hides the final secret in a 64 identity declaration',()=>{
+ const accounts=applyScriptCookieAccounts(Array.from({length:64},(_,i)=>({name:`actor_${i+1}`,schema_version:1,label:`Actor ${i+1}`,purpose:'Synthetic request',required:false,fields:['credential'],required_fields:['credential'],secret_fields:{credential:true}})),[],()=>crypto.randomUUID());
+ render(TaskCookieAccountsEditor,{props:{accounts,selected:true}});
+ expect(screen.getByLabelText('身份 64 credential').type).toBe('password');
+ expect(screen.getByLabelText('身份 64 credential').getAttribute('aria-required')).toBe('false');
+});

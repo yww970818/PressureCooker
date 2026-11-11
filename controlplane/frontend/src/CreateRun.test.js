@@ -147,3 +147,13 @@ it('submits only script-required identity fields and blocks reserved authenticat
  await fireEvent.update(screen.getByLabelText('脚本版本'),'p');
  expect((await screen.findByLabelText('身份 1 token')).value).toBe('only-token');
 });
+it('switches 64 optional identities through retired versions without renaming old credentials',async()=>{
+ const roles=Array.from({length:64},(_,i)=>({name:`actor_${i+1}`,label:`Actor ${i+1}`,purpose:'Synthetic request',required:false,required_fields:['credential']}));
+ vi.stubGlobal('fetch',async(url)=>response(url.endsWith('/cluster')?{clusters:[{id:'c',name:'集群',registered:true,worker_ids:['w1','w2']}]}:url.endsWith('/environments')?{items:environments}:url.endsWith('/datasets')?{nodes:[],...(url.includes('/p2/')?{cookie_accounts:[{name:'actor_64',required_fields:['credential']}]}:{script_identities:identityDeclaration(roles)})}:{items:[{id:'p',name:'脚本.jmx'},{id:'p2',name:'旧版'}]}));
+ render(CreateRun);await ready();await screen.findByLabelText('身份 64 credential');
+ await fireEvent.update(screen.getByLabelText('身份 64 credential'),'synthetic-tail');
+ await fireEvent.update(screen.getByLabelText('脚本版本'),'p2');await screen.findByText(/此版本使用已退役/);
+ await fireEvent.update(screen.getByLabelText('脚本版本'),'p');
+ expect((await screen.findByLabelText('身份 64 credential')).value).toBe('synthetic-tail');
+ expect(screen.getByLabelText('身份 64 credential').type).toBe('password');
+});
