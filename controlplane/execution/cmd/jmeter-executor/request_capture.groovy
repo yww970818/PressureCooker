@@ -134,6 +134,7 @@ try {
         if(state.seen.contains(sampleKey)) return
         if(state.full) return
         def write={ -> state.file.withWriter('UTF-8') { it.write(JsonOutput.toJson(state.data)) } }
+        if(label.isEmpty()) {state.data.truncated=true;state.seen.add(sampleKey);write();return}
         if(state.data.samples.size()>=64 || label.getBytes('UTF-8').length>4096) {state.data.truncated=true;state.full=true;write();return}
         def secrets=[]
         props.each { k,v -> if((PressureCookerPayloadMaskV1.sensitive(k) || k.toString().startsWith('script_identity.') || k.toString().startsWith('jmeter.env.var.') || k.toString().startsWith('jmeter.env.api.') || k.toString().startsWith('jmeter.env.scalar.')) && v instanceof String) secrets.add(v) }

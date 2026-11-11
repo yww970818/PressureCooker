@@ -48,6 +48,7 @@ func TestPressureRequestSampleReceiptBindsRawIdentityAndRejectsMalformedPayload(
 		t.Fatal("identity was derived after masking, or receipt leaked credentials")
 	}
 	for _, mutate := range []func(Obj){
+		func(v Obj) { obj(arr(v["request_samples"])[0])["label"] = "" },
 		func(v Obj) { v["request_samples_captured"] = false },
 		func(v Obj) { obj(arr(v["request_samples"])[0])["sample_kind"] = "invented" },
 		func(v Obj) { obj(arr(v["request_samples"])[0])["timestamp_ms"] = -1 },

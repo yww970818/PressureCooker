@@ -126,6 +126,35 @@ func TestRequestSamplesBudgetsPreserveNullAndGlobalEvidenceBound(t *testing.T) {
 	}
 }
 
+func TestRequestSamplesDiscardUnnamedResultsAndKeepFollowingSamples(t *testing.T) {
+	input := []protocol.RequestSample{
+		{Label: "", TimestampMS: 1000},
+		{Label: "named", TimestampMS: 2000},
+		{Label: "", TimestampMS: 3000},
+		{Label: " ", TimestampMS: 4000},
+	}
+	got, truncated := boundRequestSamples(input)
+	if !truncated || len(got) != 2 || got[0].Label != "named" || got[1].Label != " " || got[1].TimestampMS != 4000 {
+		t.Fatal("unnamed results must be disclosed and skipped without losing later valid samples")
+	}
+	if input[0].Label != "" || input[1].TimestampMS != 2000 {
+		t.Fatal("bounding rewrote the original capture")
+	}
+}
+
+func TestRequestSampleValidationRejectsUnnamedResults(t *testing.T) {
+	if validateRequestSamples(protocol.NodeEvidence{Status: "COLLECTED", RequestSamplesCaptured: true, RequestSamples: []protocol.RequestSample{{Label: ""}}}) {
+		t.Fatal("executor accepted a sample that the manager rejects")
+	}
+}
+
+func TestOfficialJMeterRequestCaptureSkipsUnnamedResults(t *testing.T) {
+	const end = "</hashTree></hashTree></hashTree></jmeterTestPlan>"
+	unnamed := `<JSR223Sampler guiclass="TestBeanGUI" testclass="JSR223Sampler" testname="" enabled="true"><stringProp name="scriptLanguage">groovy</stringProp><stringProp name="script">SampleResult.setSampleLabel(''); SampleResult.setResponseData('synthetic unnamed result', 'UTF-8'); SampleResult.setResponseCode('200')</stringProp></JSR223Sampler><hashTree/>`
+	plan := strings.TrimSuffix(officialCapturePlan, end) + unnamed + end
+	runOfficialRequestCapture(t, plan)
+}
+
 func TestOfficialJMeterRequestCaptureAfterAssertionsBeforeStripping(t *testing.T) {
 	runOfficialRequestCapture(t, officialCapturePlan)
 }
@@ -178,6 +207,19 @@ func runOfficialRequestCapture(t *testing.T, source string) {
 	cmd.Dir = foreign
 	if _, err = cmd.CombinedOutput(); err != nil {
 		t.Fatalf("official synthetic runtime failed: %v", err)
+	}
+	var binding requestCaptureBinding
+	if err = load(filepath.Join(w.requestCaptureDir(a), "binding.json"), &binding); err != nil {
+		t.Fatal(err)
+	}
+	var rawCapture requestCaptureFile
+	if err = load(filepath.Join(w.requestCaptureDir(a), binding.File), &rawCapture); err != nil {
+		t.Fatal(err)
+	}
+	for _, row := range rawCapture.Samples {
+		if row.Label == "" {
+			t.Fatal("listener persisted an unnamed sample that the manager rejects")
+		}
 	}
 	samples, captured, truncated := w.collectRequestSamples(a)
 	if !captured || !truncated || len(samples) != 11 {

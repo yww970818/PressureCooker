@@ -236,7 +236,7 @@ func boundRequestSamples(samples []protocol.RequestSample) ([]protocol.RequestSa
 			truncated = true
 			break
 		}
-		if len(sample.Label) > 4096 || !utf8.ValidString(sample.Label) || sample.TimestampMS < 0 || sample.ElapsedMS < 0 {
+		if sample.Label == "" || len(sample.Label) > 4096 || !utf8.ValidString(sample.Label) || sample.TimestampMS < 0 || sample.ElapsedMS < 0 {
 			truncated = true
 			continue
 		}
@@ -293,7 +293,7 @@ func validateRequestSamples(e protocol.NodeEvidence) bool {
 		return false
 	}
 	for _, s := range e.RequestSamples {
-		if len(s.Label) > 4096 || !utf8.ValidString(s.Label) || s.TimestampMS < 0 || s.ElapsedMS < 0 || len(s.Assertions) > 16 {
+		if s.Label == "" || len(s.Label) > 4096 || !utf8.ValidString(s.Label) || s.TimestampMS < 0 || s.ElapsedMS < 0 || len(s.Assertions) > 16 {
 			return false
 		}
 		for _, f := range []struct {
