@@ -76,7 +76,7 @@ func (p *Platform) pressureLoadThreadObservations(ctx context.Context, run Obj, 
 		}
 		id := str(node)
 		e, exists := byNode[id]
-		src := Obj{"kind": "thread_observations", "source_kind": "thread_observations", "name": "thread-observations.csv", "node_id": redact(id), "status": "MISSING", "error": "执行节点未提供独立线程观测对象", "interval_ms": protocol.ThreadObservationIntervalMS, "valid_rows": 0, "invalid_rows": 0}
+		src := Obj{"kind": "thread_observations", "source_kind": "thread_observations", "name": "thread-observations.csv", "node_id": reporting.PublicNodeID(id, redact), "status": "MISSING", "error": "执行节点未提供独立线程观测对象", "interval_ms": protocol.ThreadObservationIntervalMS, "valid_rows": 0, "invalid_rows": 0}
 		if !exists || e.ThreadObservations == nil {
 			if exists && e.ThreadObservationsStatus != "" {
 				src["capture_status"] = e.ThreadObservationsStatus

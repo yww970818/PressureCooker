@@ -129,7 +129,7 @@ func (p *Platform) workPressure(parent context.Context, c pressureClaim) {
 	}
 	safeNodes := make([]string, len(options.ExpectedNodes))
 	for i, n := range options.ExpectedNodes {
-		safeNodes[i] = options.Redactor(n)
+		safeNodes[i] = reporting.PublicNodeID(n, options.Redactor)
 	}
 	analysis := reporting.Analysis{Quality: reporting.Quality{MetricStatus: "MISSING", LogStatus: "MISSING", ExpectedNodes: safeNodes, ObservedNodes: []string{}, NodeCoverage: "UNKNOWN", Warnings: []string{"缺少有效的原始采样文件"}}, Timeline: []reporting.Point{}, Steps: []reporting.Step{}, Issues: []reporting.Issue{}, Findings: []reporting.Finding{}}
 	analysis.Dashboard = reporting.Dashboard{Version: 1, Options: analysisOptions, Capabilities: reporting.DashboardCapabilities{ActiveThreads: "MISSING", Latency: "MISSING", Connect: "MISSING", ResponseCodes: "MISSING", Bytes: "MISSING", Transactions: "MISSING"}, Warnings: []string{"缺少有效的原始采样文件"}, Scopes: []reporting.DashboardScope{}}
@@ -228,7 +228,7 @@ func (p *Platform) workPressure(parent context.Context, c pressureClaim) {
 		}
 		tmp.Close()
 		if se != nil {
-			p.failPressure(c, "JTL解析失败：格式无效或超过采样、步骤、节点、错误分类或趋势聚合边界；可调大报告时间粒度后重新解析")
+			p.failPressure(c, pressureJTLFailure(se))
 			return
 		}
 		if src["status"] == "MISSING" {
@@ -265,6 +265,22 @@ func (p *Platform) workPressure(parent context.Context, c pressureClaim) {
 
 	if e = p.publishPressure(c, report, run, analysis, sources); e != nil {
 		p.failPressure(c, "报告入库失败，将自动重试")
+	}
+}
+
+// Parser errors are deliberately mapped to controlled text: file contents and
+// storage errors can contain credentials and must never become report messages.
+func pressureJTLFailure(err error) string {
+	if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+		return "JTL解析已取消或超时"
+	}
+	switch err.Error() {
+	case "JTL dashboard point limit exceeded", "JTL timeline bucket limit exceeded", "JTL dashboard histogram cell limit exceeded":
+		return "JTL解析失败：趋势粒度已按数据量自动增大，仍超过安全聚合边界"
+	case "JTL node identity collision after redaction":
+		return "JTL解析失败：执行节点身份冲突，无法安全归属采样"
+	default:
+		return "JTL解析失败：格式无效或超过文件、采样、步骤、节点或错误分类边界"
 	}
 }
 

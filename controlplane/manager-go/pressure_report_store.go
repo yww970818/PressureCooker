@@ -48,7 +48,7 @@ func safePressureRun(run Obj) Obj {
 	}
 	workers := []any{}
 	for _, w := range arr(run["workers"]) {
-		workers = append(workers, redact(str(w)))
+		workers = append(workers, reporting.PublicNodeID(str(w), redact))
 	}
 	out["workers"] = workers
 	out["name"] = redact(str(run["name"]))

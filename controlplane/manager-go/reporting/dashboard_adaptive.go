@@ -59,13 +59,13 @@ func mergeDashboardBucket(dst, src *dashboardBucket) {
 
 // Only trend buckets are coarsened. Exact counters, APDEX, per-step metrics and
 // histogram estimators for the full range are untouched. Actual width is saved.
-func (b *dashboardBuilder) compactPoints() {
+func (b *dashboardBuilder) compactPoints() bool {
 	nextWidth := b.options.GranularityMS * 2
 	if nextWidth > 3600000 {
-		return
+		return false
 	}
 	if nextWidth == b.options.GranularityMS {
-		return
+		return false
 	}
 	b.options.GranularityMS = nextWidth
 	b.compacted = true
@@ -85,4 +85,18 @@ func (b *dashboardBuilder) compactPoints() {
 		scope.points = next
 		b.pointCount += len(next)
 	}
+	return true
+}
+
+func compactTimeline(points map[int64]*agg, width int64) map[int64]*agg {
+	next := map[int64]*agg{}
+	for timestamp, point := range points {
+		key := timestamp / width * width
+		if existing := next[key]; existing != nil {
+			mergeTiming(existing, point)
+		} else {
+			next[key] = point
+		}
+	}
+	return next
 }

@@ -110,7 +110,7 @@ func pressureMergeRequestSamples(a *reporting.Analysis, run Obj) bool {
 			if json.Unmarshal(encoded(row), &sample) != nil {
 				continue
 			}
-			sample.NodeID = redact(receipt.NodeID)
+			sample.NodeID = reporting.PublicNodeID(receipt.NodeID, redact)
 			sample.SourceKind = "worker_sample"
 			sample.SourceName = "request-samples.json"
 			incoming = append(incoming, sample)

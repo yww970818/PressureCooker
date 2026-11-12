@@ -17,6 +17,15 @@ func StableStepKey(kind, rawLabel string) string {
 
 func stableStepKey(kind, rawLabel string) string { return StableStepKey(kind, rawLabel) }
 
+// PublicNodeID separates a masked display label from its physical identity.
+// Use the same opaque identifier for metrics, logs, samples and thread evidence.
+func PublicNodeID(raw string, redact func(string) string) string {
+	if raw == "" || raw == UnassignedNodeID || redact == nil || redact(raw) == raw {
+		return raw
+	}
+	return fmt.Sprintf("node-%x", sha256.Sum256([]byte(raw)))
+}
+
 type nodeAggregate struct {
 	ordinary     agg
 	transactions int64
@@ -97,7 +106,7 @@ func (d *nodeDetails) finish(a *Analysis, labels, kinds map[string]string, red f
 	sort.Strings(ids)
 	publicIDs := map[string]string{}
 	for _, id := range ids {
-		public := red(id)
+		public := PublicNodeID(id, red)
 		if prior, ok := publicIDs[public]; ok && prior != id {
 			return fmt.Errorf("JTL node identity collision after redaction")
 		}
@@ -113,7 +122,7 @@ func (d *nodeDetails) finish(a *Analysis, labels, kinds map[string]string, red f
 		}
 		metrics := n.ordinary.metrics()
 		metrics.TransactionCount = n.transactions
-		node := Node{NodeID: public, Label: public, Expected: d.expected[id], Status: status, Metrics: metrics, StepCount: n.stepCount}
+		node := Node{NodeID: public, Label: red(id), Expected: d.expected[id], Status: status, Metrics: metrics, StepCount: n.stepCount}
 		if n.observed {
 			first, last := n.first, n.last
 			node.FirstAt, node.LastAt = &first, &last
@@ -137,7 +146,7 @@ func (d *nodeDetails) finish(a *Analysis, labels, kinds map[string]string, red f
 			metrics.SampleScope = "transaction_samples"
 			metrics.TransactionCount = metrics.SampleCount
 		}
-		a.NodeSteps = append(a.NodeSteps, Step{ID: fmt.Sprintf("node-step-%d", i+1), NodeID: red(key.node), StepKey: stableStepKey(kind, strings.SplitN(key.step, "\x00", 2)[1]), Label: label, SampleKind: kind, Metrics: metrics})
+		a.NodeSteps = append(a.NodeSteps, Step{ID: fmt.Sprintf("node-step-%d", i+1), NodeID: PublicNodeID(key.node, red), StepKey: stableStepKey(kind, strings.SplitN(key.step, "\x00", 2)[1]), Label: label, SampleKind: kind, Metrics: metrics})
 	}
 	return nil
 }

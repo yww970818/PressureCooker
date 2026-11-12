@@ -166,7 +166,7 @@ function submitOptions() {
   </div></details>
  </div>
  <details v-if="metadata.version !== null && !overview" class="analytics-disclosure"><summary>分析设置 · 重新解析为新版本</summary> <form class="analytics-settings" @submit.prevent="submitOptions">
-  <h4>新版本分析设置</h4><p class="analytics-note">APDEX 满意计 1 分、容忍计 0.5 分、受挫计 0 分；失败采样始终受挫。阈值与时间桶粒度冻结在报告版本中，修改后需从原始记录重新解析，不在浏览器中重算。</p>
+  <h4>新版本分析设置</h4><p class="analytics-note">APDEX 满意计 1 分、容忍计 0.5 分、受挫计 0 分；失败采样始终受挫。时间桶粒度作为起始精度，数据量较大时自动增大，当前实际粒度随报告版本保存。修改设置后需从原始记录重新解析。</p>
   <div class="analytics-filters"><label>APDEX 满意阈值（毫秒）<input v-model="settings.apdex_satisfied_ms" type="number" min="0" max="1000000000" step="any" aria-label="APDEX 满意阈值（毫秒）" :disabled="busy"/></label><label>APDEX 容忍阈值（毫秒）<input v-model="settings.apdex_tolerated_ms" type="number" min="0" max="1000000000" step="any" aria-label="APDEX 容忍阈值（毫秒）" :disabled="busy"/></label><label>时间桶粒度（毫秒）<input v-model="settings.granularity_ms" type="number" min="1000" max="3600000" step="1" aria-label="时间桶粒度（毫秒）" :disabled="busy"/></label></div>
   <ErrorBox :error="formError"/><Button type="button" :disabled="busy || analytics.loading" @click="submitOptions">按分析设置生成新版本</Button>
  </form>

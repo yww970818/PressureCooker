@@ -181,32 +181,17 @@ func (b *ThreadObservationBuilder) Apply(d *Dashboard, redactors ...func(string)
 		redact = redactors[0]
 	}
 	labels := map[string]string{}
-	counts := map[string]int{}
 	for _, node := range b.expected {
-		label := redact(node)
-		labels[node] = label
-		counts[label]++
+		labels[node] = PublicNodeID(node, redact)
 	}
 	for _, value := range series {
 		for i, warning := range value.Warnings {
 			value.Warnings[i] = redact(warning)
 		}
 	}
-	// Aggregation always uses physical raw identities. Public scope identifiers
-	// retain the existing redaction contract, which may make attribution ambiguous.
 	published := map[string]*ThreadObservations{"": series[""]}
-	ambiguous := false
 	for _, node := range b.expected {
-		label := labels[node]
-		if counts[label] > 1 {
-			published[label] = &ThreadObservations{Source: "PERIODIC", IntervalMS: threadObservationIntervalMS, ResolutionMS: b.resolution, Status: "MISSING", Points: []ThreadObservationPoint{}, Warnings: []string{"执行节点标识脱敏后重合，无法唯一关联节点独立线程曲线；请查看整体观测"}}
-			ambiguous = true
-		} else {
-			published[label] = series[node]
-		}
-	}
-	if ambiguous {
-		published[""].Warnings = append(published[""].Warnings, "部分执行节点标识脱敏后重合，节点曲线无法唯一关联；整体曲线仍按真实节点独立汇总")
+		published[labels[node]] = series[node]
 	}
 	seen := map[string]bool{}
 	for i := range d.Scopes {

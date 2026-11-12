@@ -144,5 +144,5 @@ type ParseOptions struct {
 	MaxRows                   int64
 }
 
-const ParserVersion = "1.5.0"
+const ParserVersion = "1.5.1"
 const SchemaVersion = "1"

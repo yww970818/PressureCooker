@@ -3,6 +3,7 @@ package reporting
 import (
 	"context"
 	"fmt"
+	"reflect"
 	"strings"
 	"testing"
 )
@@ -25,6 +26,9 @@ func TestAdaptiveDashboardPreservesMeasurementsAcrossCompaction(t *testing.T) {
 	if a.Dashboard.Options.GranularityMS <= 1000 || len(a.Dashboard.Warnings) == 0 {
 		t.Fatal("missing explicit compaction/granularity evidence")
 	}
+	if !reflect.DeepEqual(a.Timeline, coarse.Timeline) {
+		t.Fatal("overview and dashboard use different buckets")
+	}
 	if a.Metrics.SampleCount != 24000 || a.Metrics.FailureCount != 2400 {
 		t.Fatal("sample counts changed")
 	}
@@ -46,5 +50,46 @@ func TestAdaptiveDashboardPreservesMeasurementsAcrossCompaction(t *testing.T) {
 	}
 	if points > dashboardMaxPoints {
 		t.Fatal("unbounded dashboard")
+	}
+}
+
+func TestAdaptiveTimelineCoarsensWithoutDroppingSparseOrOutOfOrderSamples(t *testing.T) {
+	var raw strings.Builder
+	raw.WriteString("timeStamp,elapsed,label,success,engine_id,sample_kind\n")
+	for i := 4999; i >= 0; i-- {
+		fmt.Fprintf(&raw, "%d,%d,a,%t,w,ordinary\n", 1794000000123+int64(i)*1000, 1+i%30, i%7 != 0)
+	}
+	for _, limit := range []int{3600, 8} {
+		a, err := ParseJTL(context.Background(), strings.NewReader(raw.String()), ParseOptions{AdaptiveDashboard: true, MaxBuckets: limit})
+		if err != nil {
+			t.Fatal(err)
+		}
+		width := a.Dashboard.Options.GranularityMS
+		if width <= 1000 || len(a.Timeline) > limit || a.Metrics.SampleCount != 5000 {
+			t.Fatal("overview did not adapt")
+		}
+		coarse, err := ParseJTL(context.Background(), strings.NewReader(raw.String()), ParseOptions{MaxBuckets: limit, AnalyticsOptions: DashboardOptions{GranularityMS: width}})
+		if err != nil {
+			t.Fatal(err)
+		}
+		coarse.Dashboard.Warnings = a.Dashboard.Warnings
+		if !reflect.DeepEqual(a.Timeline, coarse.Timeline) || !reflect.DeepEqual(a.Metrics, coarse.Metrics) || !reflect.DeepEqual(a.Dashboard, coarse.Dashboard) {
+			t.Fatal("adaptive statistics differ from direct aggregation")
+		}
+	}
+}
+func TestAdaptiveGranularityStopsAtExactMergeBoundary(t *testing.T) {
+	b := &dashboardBuilder{options: DashboardOptions{GranularityMS: 2000000}}
+	if b.compactPoints() || b.options.GranularityMS != 2000000 {
+		t.Fatal("merged buckets into an incompatible time grid")
+	}
+	var raw strings.Builder
+	raw.WriteString("timeStamp,elapsed,label,success,engine_id,sample_kind\n")
+	for i := 0; i < 3; i++ {
+		fmt.Fprintf(&raw, "%d,1,a,true,w,ordinary\n", i*3600000)
+	}
+	_, err := ParseJTL(context.Background(), strings.NewReader(raw.String()), ParseOptions{AdaptiveDashboard: true, MaxBuckets: 1, AnalyticsOptions: DashboardOptions{GranularityMS: 3600000}})
+	if err == nil || !strings.Contains(err.Error(), "timeline bucket limit") {
+		t.Fatal("hard limit lost or loop failed to terminate", err)
 	}
 }

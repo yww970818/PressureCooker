@@ -110,7 +110,7 @@ func ParseJTL(ctx context.Context, r io.Reader, o ParseOptions) (Analysis, error
 		return s
 	}
 	for _, id := range o.ExpectedNodes {
-		a.Quality.ExpectedNodes = append(a.Quality.ExpectedNodes, red(id))
+		a.Quality.ExpectedNodes = append(a.Quality.ExpectedNodes, PublicNodeID(id, red))
 	}
 	if o.MaxLabels <= 0 {
 		o.MaxLabels = 500
@@ -319,15 +319,7 @@ func ParseJTL(ctx context.Context, r io.Reader, o ParseOptions) (Analysis, error
 		if kind == "transaction" {
 			tx++
 		} else {
-			bucket := ts / options.GranularityMS * options.GranularityMS
-			if buckets[bucket] == nil {
-				if len(buckets) >= o.MaxBuckets {
-					return a, fmt.Errorf("JTL timeline bucket limit exceeded")
-				}
-				buckets[bucket] = &agg{}
-			}
 			all.add(ts, el, ok, br, bs)
-			buckets[bucket].add(ts, el, ok, br, bs)
 			for _, c := range []*thresholdCount{a.Quality.exactP95, a.Quality.exactP99} {
 				if c != nil {
 					c.total++
@@ -342,7 +334,26 @@ func ParseJTL(ctx context.Context, r io.Reader, o ParseOptions) (Analysis, error
 		if err := dashboard.add(dashboardRecord{ts: ts, elapsed: el, node: node, key: stepKey, label: label, kind: kind, ok: ok, scopeUnconfirmed: scopeUnconfirmed, kindKnown: kind != "unknown" || o.ScopeConfirmed, latency: latency, connect: connect, threads: threads, received: received, sent: sent, code: red(optionalCode(get(row, "responseCode"))), category: category, message: red(message)}, all, steps[key], details, key); err != nil {
 			return a, err
 		}
-		publicNode := red(node)
+		if options.GranularityMS != dashboard.options.GranularityMS {
+			options.GranularityMS = dashboard.options.GranularityMS
+			buckets = compactTimeline(buckets, options.GranularityMS)
+		}
+		if kind != "transaction" {
+			bucket := ts / options.GranularityMS * options.GranularityMS
+			for buckets[bucket] == nil && len(buckets) >= o.MaxBuckets && o.AdaptiveDashboard && dashboard.compactPoints() {
+				options.GranularityMS = dashboard.options.GranularityMS
+				buckets = compactTimeline(buckets, options.GranularityMS)
+				bucket = ts / options.GranularityMS * options.GranularityMS
+			}
+			if buckets[bucket] == nil {
+				if len(buckets) >= o.MaxBuckets {
+					return a, fmt.Errorf("JTL timeline bucket limit exceeded")
+				}
+				buckets[bucket] = &agg{}
+			}
+			buckets[bucket].add(ts, el, ok, br, bs)
+		}
+		publicNode := PublicNodeID(node, red)
 		if requestSamples.wants(requestSampleSlot{publicNode, stepKey, ok}) {
 			sample := csvRequestSample(row, idx, publicNode, stepKey, rawLabel, kind, ts, el, ok)
 			requestSamples.add(SanitizeRequestSample(sample, o.Redactor), false)
@@ -352,7 +363,7 @@ func ParseJTL(ctx context.Context, r io.Reader, o ParseOptions) (Analysis, error
 			if message == "" && strings.TrimSpace(get(row, "responseCode")) != "" {
 				message = "responseCode=" + strings.TrimSpace(get(row, "responseCode"))
 			}
-			a.Issues = append(a.Issues, Issue{ID: fmt.Sprintf("sample-%d", rows), NodeID: red(node), StepKey: stableStepKey(kind, rawLabel), SourceKind: "jtl", SourceName: "results.jtl", Category: "sample_failure", Level: "ERROR", Label: label, StepLabel: label, Message: red(message), Count: 1, FirstAt: &ts, LastAt: &ts, LineFrom: int64(firstLine), LineTo: int64(lastLine)})
+			a.Issues = append(a.Issues, Issue{ID: fmt.Sprintf("sample-%d", rows), NodeID: publicNode, StepKey: stableStepKey(kind, rawLabel), SourceKind: "jtl", SourceName: "results.jtl", Category: "sample_failure", Level: "ERROR", Label: label, StepLabel: label, Message: red(message), Count: 1, FirstAt: &ts, LastAt: &ts, LineFrom: int64(firstLine), LineTo: int64(lastLine)})
 		} else if !ok && len(a.Issues) == o.MaxIssues {
 			a.Quality.Warnings = appendUnique(a.Quality.Warnings, "失败样本明细达到上限；整体失败计数保留")
 		}
@@ -373,7 +384,7 @@ func ParseJTL(ctx context.Context, r io.Reader, o ParseOptions) (Analysis, error
 		a.Quality.MetricStatus = "PARTIAL"
 	}
 	for n := range nodes {
-		a.Quality.ObservedNodes = append(a.Quality.ObservedNodes, red(n))
+		a.Quality.ObservedNodes = append(a.Quality.ObservedNodes, PublicNodeID(n, red))
 	}
 	sort.Strings(a.Quality.ObservedNodes)
 	if len(o.ExpectedNodes) > 0 {

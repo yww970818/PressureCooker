@@ -285,15 +285,57 @@ func TestNodeDetailsConfiguredLimitsIncludeMissingNodesAndAllStepKinds(t *testin
 	}
 }
 
-func TestNodeDetailsRedactedIdentityCollisionsFailExplicitly(t *testing.T) {
-	raw := "timeStamp,elapsed,label,success,engine_id,sample_kind\n1,1,a,true,token=private-one,ordinary\n2,1,a,true,token=private-two,ordinary\n"
-	a, err := ParseJTL(context.Background(), strings.NewReader(raw), ParseOptions{})
-	if err == nil || !strings.Contains(err.Error(), "identity collision") {
-		t.Fatalf("ambiguous redacted nodes exposed: %+v %v", a, err)
+func TestNodeDetailsRedactedIdentitiesRemainDistinctAcrossSources(t *testing.T) {
+	raw := "timeStamp,elapsed,label,success,engine_id,sample_kind\n1,1,a,false,token=private-one,ordinary\n2,2,a,false,token=private-two,ordinary\n"
+	expected := []string{"token=private-one", "token=private-two", "token=private-missing"}
+	red := NewRedactor(nil)
+	a, err := ParseJTL(context.Background(), strings.NewReader(raw), ParseOptions{ExpectedNodes: expected})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(a.Nodes) != 3 || len(a.NodeSteps) != 2 || len(a.RequestSamples) != 2 || len(a.Issues) != 2 || a.Quality.NodeCoverage != "PARTIAL" {
+		t.Fatal("node evidence was collapsed or invented")
+	}
+	ids := map[string]bool{}
+	for _, n := range a.Nodes {
+		if ids[n.NodeID] {
+			t.Fatal("duplicate public identity")
+		}
+		ids[n.NodeID] = true
+	}
+	for _, id := range expected {
+		if !ids[PublicNodeID(id, red)] {
+			t.Fatal("unstable expected node identity")
+		}
+	}
+	for _, step := range a.NodeSteps {
+		if !ids[step.NodeID] {
+			t.Fatal("node-step scope detached")
+		}
+	}
+	for _, issue := range a.Issues {
+		if !ids[issue.NodeID] {
+			t.Fatal("issue scope detached")
+		}
+	}
+	for _, sample := range a.RequestSamples {
+		if !ids[sample.NodeID] {
+			t.Fatal("sample scope detached")
+		}
+	}
+	for _, scope := range a.Dashboard.Scopes {
+		if scope.NodeID != "" && !ids[scope.NodeID] {
+			t.Fatal("dashboard scope detached")
+		}
 	}
 	b, _ := json.Marshal(a)
-	if strings.Contains(string(b), "private-one") || strings.Contains(string(b), "private-two") || strings.Contains(err.Error(), "private") {
-		t.Fatalf("failed analysis exposed raw identifiers: %s %v", b, err)
+	for _, secret := range expected {
+		if strings.Contains(string(b), secret) {
+			t.Fatal("raw identifier exposed")
+		}
+	}
+	if PublicNodeID("worker-a", red) != "worker-a" || PublicNodeID(UnassignedNodeID, red) != UnassignedNodeID {
+		t.Fatal("ordinary or unassigned identity changed")
 	}
 }
 

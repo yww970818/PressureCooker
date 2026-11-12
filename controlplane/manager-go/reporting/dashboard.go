@@ -144,8 +144,10 @@ func (b *dashboardBuilder) histogramAdd(a *agg, ts int64, value float64, ok bool
 }
 func (b *dashboardBuilder) add(r dashboardRecord, all, step *agg, details *nodeDetails, rawStepKey string) error {
 	if b.adaptive {
-		for (b.pointCount >= dashboardMaxPoints-4 || b.histogramCells >= b.maxHistogramCells*4/5) && b.options.GranularityMS <= 1800000 {
-			b.compactPoints()
+		for b.pointCount >= dashboardMaxPoints-4 || b.histogramCells >= b.maxHistogramCells*4/5 {
+			if !b.compactPoints() {
+				break
+			}
 		}
 	}
 	b.records++
@@ -374,7 +376,7 @@ func (b *dashboardBuilder) finish() Dashboard {
 		if apdex.Count > 0 {
 			apdex.Score = ptr((float64(apdex.Satisfied) + float64(apdex.Tolerated)/2) / float64(apdex.Count))
 		}
-		out := DashboardScope{NodeID: b.red(id.node), StepKey: id.step, Label: s.label, SampleKind: s.kind, Metrics: metrics, Latency: timingStats(&s.data.latency), Connect: timingStats(&s.data.connect), Apdex: apdex, Points: []DashboardPoint{}, Distribution: []DistributionBin{}, Percentiles: fullPercentiles(s.data.rt), ResponseCodes: responseCodes(s.data.codes, metrics.SampleCount, metrics.DurationSeconds), Errors: []DashboardError{}, TopErrors: []DashboardError{}}
+		out := DashboardScope{NodeID: PublicNodeID(id.node, b.red), StepKey: id.step, Label: s.label, SampleKind: s.kind, Metrics: metrics, Latency: timingStats(&s.data.latency), Connect: timingStats(&s.data.connect), Apdex: apdex, Points: []DashboardPoint{}, Distribution: []DistributionBin{}, Percentiles: fullPercentiles(s.data.rt), ResponseCodes: responseCodes(s.data.codes, metrics.SampleCount, metrics.DurationSeconds), Errors: []DashboardError{}, TopErrors: []DashboardError{}}
 		if metrics.SampleCount > 0 {
 			for i, count := range s.data.distribution {
 				if distributionBounds[i] > s.data.rt.max {

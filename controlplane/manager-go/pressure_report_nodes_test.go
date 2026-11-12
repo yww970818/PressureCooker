@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"net/http/httptest"
 	"strings"
 	"testing"
@@ -153,5 +154,81 @@ func TestPressureNodeDetailFiltersAndLegacyIsolation(t *testing.T) {
 	legacy := read("nodes", "")
 	if number(legacy["detail_version"]) != 0 || number(legacy["total"]) != 0 {
 		t.Fatal("old report compatibility", legacy)
+	}
+}
+
+func TestPressureMaskedNodeIdentityJoinsMetricsLogsSamplesAndThreads(t *testing.T) {
+	p := independentThreadPlatform(t)
+	ev1 := independentThreadEvidence()
+	ev1 = independentThreadPut(t, p, ev1, independentThreadCSV(ev1, "END,2000\n"))
+	ev2 := independentThreadEvidence()
+	ev2.NodeID = "worker-2"
+	ev2 = independentThreadPut(t, p, ev2, strings.ReplaceAll(independentThreadCSV(ev2, "END,2000\n"), "1000,3", "1000,9"))
+	for _, ev := range []*protocol.NodeEvidence{&ev1, &ev2} {
+		ev.RequestSamplesCaptured = true
+		ev.RequestSamples = []protocol.RequestSample{{StepKey: reporting.StableStepKey("ordinary", "a"), Label: "a", SampleKind: "ordinary", TimestampMS: 1000, ElapsedMS: 1, Success: false}}
+		ev.Logs = []protocol.NodeLog{{Name: "jmeter.log", Status: "COLLECTED", Content: "ERROR saved failure", LineFrom: 1, LineTo: 1, Size: 19}}
+	}
+	run := Obj{"id": "run-1", "attempt_id": "attempt-1", "workers": []any{"worker-1", "worker-2"}, "properties": Obj{"token": "1", "password": "2"}, "node_evidence": []protocol.NodeEvidence{ev1, ev2}}
+	red := pressureRedactor(run)
+	a, err := reporting.ParseJTL(context.Background(), strings.NewReader("timeStamp,elapsed,label,success,engine_id,sample_kind\n1000,1,a,false,worker-1,ordinary\n1000,1,a,false,worker-2,ordinary\n"), reporting.ParseOptions{ExpectedNodes: []string{"worker-1", "worker-2"}, Redactor: red})
+	if err != nil {
+		t.Fatal(err)
+	}
+	pressureNodeLogIssues(&a, run)
+	pressureMergeRequestSamples(&a, run)
+	sources, err := p.pressureLoadThreadObservations(context.Background(), run, &a)
+	if err != nil {
+		t.Fatal(err)
+	}
+	nodes, logs := pressureNodeDetailData("report-1", a, run)
+	if len(nodes) != 2 || len(a.RequestSamples) != 2 || len(sources) != 2 {
+		t.Fatal("node sources collapsed")
+	}
+	ids := map[string]bool{}
+	for _, value := range nodes {
+		n := obj(value)
+		id := str(n["node_id"])
+		if ids[id] {
+			t.Fatal("duplicate node")
+		}
+		ids[id] = true
+		if n["log_status"] != "PARTIAL" {
+			t.Fatal("log join lost")
+		}
+	}
+	for _, row := range logs {
+		if !ids[str(obj(row)["node_id"])] {
+			t.Fatal("log scope lost")
+		}
+	}
+	for _, row := range a.RequestSamples {
+		if !ids[row.NodeID] {
+			t.Fatal("sample scope lost")
+		}
+	}
+	for _, row := range sources {
+		if !ids[str(obj(row)["node_id"])] {
+			t.Fatal("source scope lost")
+		}
+	}
+	for _, scope := range a.Dashboard.Scopes {
+		if scope.NodeID != "" && scope.StepKey == "" {
+			if !ids[scope.NodeID] || scope.ThreadObservations == nil || len(scope.ThreadObservations.Points) != 2 {
+				t.Fatal("periodic node curve lost")
+			}
+		}
+	}
+}
+
+func TestPressureJTLFailureUsesControlledReasons(t *testing.T) {
+	for _, err := range []error{errors.New("private-token-value"), errors.New("JTL node identity collision after redaction"), errors.New("JTL dashboard point limit exceeded"), context.DeadlineExceeded} {
+		message := pressureJTLFailure(err)
+		if strings.Contains(message, "private-token-value") || strings.Contains(message, "调大") {
+			t.Fatal("unsafe or misleading reason")
+		}
+	}
+	if !strings.Contains(pressureJTLFailure(errors.New("JTL dashboard point limit exceeded")), "自动") || !strings.Contains(pressureJTLFailure(errors.New("JTL node identity collision after redaction")), "身份") {
+		t.Fatal("failure categories lost")
 	}
 }

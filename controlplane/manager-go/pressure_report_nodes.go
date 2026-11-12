@@ -101,7 +101,7 @@ func pressureNodeLogIssues(a *reporting.Analysis, run Obj) {
 				a.Quality.Warnings = append(a.Quality.Warnings, "执行节点日志异常摘要达到解析边界，仅展示部分明细；请结合已保存日志内容核对")
 			}
 			for _, item := range issues {
-				item.NodeID = redact(v.NodeID)
+				item.NodeID = reporting.PublicNodeID(v.NodeID, redact)
 				item.SourceKind = "worker_log"
 				if log.LineFrom > 0 {
 					item.LineFrom += log.LineFrom - 1
@@ -118,7 +118,7 @@ func pressureNodeDetailData(reportID string, a reporting.Analysis, run Obj) ([]a
 	nodes, logs := []any{}, []any{}
 	evidence := map[string]protocol.NodeEvidence{}
 	for _, v := range pressureStoredNodeEvidence(run) {
-		evidence[redact(v.NodeID)] = v
+		evidence[reporting.PublicNodeID(v.NodeID, redact)] = v
 	}
 	seen := map[string]bool{}
 	for _, n := range a.Nodes {
@@ -127,7 +127,7 @@ func pressureNodeDetailData(reportID string, a reporting.Analysis, run Obj) ([]a
 	}
 	// Even a run without a usable JTL retains the expected worker cards.
 	for _, v := range arr(run["workers"]) {
-		id := redact(str(v))
+		id := reporting.PublicNodeID(str(v), redact)
 		if !seen[id] {
 			nodes = append(nodes, dtoObject(reporting.Node{NodeID: id, Label: id, Expected: true, Status: "MISSING", Metrics: reporting.Metrics{SampleScope: "ordinary_samples"}}))
 			seen[id] = true
