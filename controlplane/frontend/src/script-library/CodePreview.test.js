@@ -10,13 +10,14 @@ vi.mock('@scalar/use-codemirror', () => ({
   useCodeMirror: options => { editor.options = options; },
 }));
 const originalExecCommand = Object.getOwnPropertyDescriptor(document, 'execCommand');
-afterEach(() => { cleanup(); vi.unstubAllGlobals(); if (originalExecCommand) Object.defineProperty(document, 'execCommand', originalExecCommand); else delete document.execCommand; });
+afterEach(() => { cleanup(); editor.options = null; vi.unstubAllGlobals(); if (originalExecCommand) Object.defineProperty(document, 'execCommand', originalExecCommand); else delete document.execCommand; });
 
 it('automatically formats the preview while copying the original source and refreshing for another version', async () => {
   const raw = '<jmeterTestPlan><hashTree><stringProp name="script">  log.info("a > b")\n  </stringProp></hashTree></jmeterTestPlan>';
   const writeText = vi.fn().mockResolvedValue();
   vi.stubGlobal('navigator', { clipboard: { writeText } });
   const view = render(CodePreview, { props: { content: raw } });
+  await waitFor(() => expect(editor.options).not.toBeNull());
   expect(editor.options.content()).toBe('<jmeterTestPlan>\n  <hashTree>\n    <stringProp name="script">  log.info("a > b")\n  </stringProp>\n  </hashTree>\n</jmeterTestPlan>');
   await fireEvent.click(screen.getByRole('button', { name: '复制源码' }));
   expect(writeText).toHaveBeenCalledWith(raw);
@@ -29,6 +30,7 @@ it('uses the same readonly XML editor for compact imported fragments with a dist
   const content = '<Plugin/><hashTree><Child/></hashTree>', writeText = vi.fn().mockResolvedValue();
   vi.stubGlobal('navigator', { clipboard: { writeText } });
   render(CodePreview, { props: { content, fragment: true, compact: true, label: '导入原文（只读）' } });
+  await waitFor(() => expect(editor.options).not.toBeNull());
   expect(screen.getByRole('region', { name: '导入原文（只读）预览' })).toBeTruthy();
   expect(editor.options.content()).toBe('<Plugin/>\n<hashTree>\n  <Child/>\n</hashTree>');
   expect(editor.options.language()).toBe('xml');
@@ -49,7 +51,7 @@ it.each(['unavailable', 'denied'])('copies on HTTP when the clipboard API is %s 
   expect(copied).toBe(raw);
   expect(document.activeElement).toBe(button);
   expect(screen.getByRole('button', { name: '已复制' })).toBeTruthy();
-  expect(document.querySelector('textarea')).toBeNull();
+  expect(document.body.querySelector(':scope > textarea')).toBeNull();
 });
 
 it('preserves CRLF through the HTTP copy event and removes its temporary clipboard handler', async () => {

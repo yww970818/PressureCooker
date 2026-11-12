@@ -10,7 +10,7 @@ import WorkflowImport from '../workflow/WorkflowImport.vue';
 import WorkflowGraphEditor from '../workflow/WorkflowGraphEditor.vue';
 import StructurePreview from './StructurePreview.vue';
 import { createLibraryController, entryKey, groupLibrary } from './library.js';
-import CodePreview from './LazyCodePreview.js';
+import CodePreview from './CodePreview.vue';
 const api = createProjectApi();
 const props = defineProps({ notify: { type: Function, default: () => {} }, controller: Object });
 const model = props.controller || createLibraryController(), s = model.state;

@@ -5,7 +5,7 @@ import { isOpaque, nodeName } from '../workflow/graph.js';
 import VirtualList from '../ui/VirtualList.vue';
 import { Button, Icon, Notice } from '../ui/index.js';
 import { lazyNode } from '../workflow/lazy-nodes.js';
-import CodePreview from './LazyCodePreview.js';
+import CodePreview from './CodePreview.vue';
 const props = defineProps({ graph: { type: Object, required: true }, loadNode: Function, contextKey: String });
 const selected = ref(null), collapsed = ref(new Set()), rawOpen = ref(false);
 const loading = ref(false), error = ref(null);

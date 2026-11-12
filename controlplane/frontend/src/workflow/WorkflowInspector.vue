@@ -9,7 +9,7 @@ import VariableGuide from './VariableGuide.vue';
 import { Button, Field, Modal, Notice,ErrorBox } from '../ui/index.js';
 import { componentInfo } from './catalog.js';
 import { descendants, parentAllowed, nodeName } from './graph.js';
-import CodePreview from '../script-library/LazyCodePreview.js';
+import CodePreview from '../script-library/CodePreview.vue';
 const props = defineProps({ node: Object, graph: { type: Object, required: true }, contextKey: {type:String,default:''}, disabled: Boolean });
 const emit = defineEmits(['change', 'parent', 'order', 'detach', 'graph', 'dirty-state']);
 const rawOpen = ref(false), expanding=ref(false),expandError=ref(null);
