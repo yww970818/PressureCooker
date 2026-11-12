@@ -29,7 +29,7 @@ defineExpose({ hasUnsavedChanges: () => Boolean(editor.value?.hasUnsavedChanges 
     <CollectionEnvironments v-if="!compact" v-show="section==='collection'" ref="collectionEditor" :collection-id="collectionId" :read-only="readOnly"/>
     <div v-show="compact||section==='project'" class="project-environment-panel"><ErrorBox :error="model.error || store.state.error" :retry="store.load"/>
     <Loading v-if="store.state.loading && !store.state.loaded"/>
-    <template v-else-if="model.data"><Notice v-if="readOnly">项目已归档，环境配置只读。</Notice><fieldset class="project-environment-fields" :disabled="readOnly || Boolean(model.error)"><EnvironmentEditor :key="editorVersion" ref="editor" :environments="model.data.environments" :active-environment="model.data.activeEnvironment" :save-handler="save" :saving="store.state.saving" scope-label="项目"/></fieldset></template>
+    <template v-else-if="model.data"><Notice v-if="readOnly">项目已归档，环境配置只读。</Notice><fieldset class="project-environment-fields" :disabled="readOnly || Boolean(model.error)"><EnvironmentEditor :key="editorVersion" ref="editor" :environments="model.data.environments" :active-environment="model.data.activeEnvironment" :save-handler="save" :saving="store.state.saving" connection-addresses scope-label="项目"/></fieldset></template>
     </div>
   </section>
   <Modal v-if="pendingSection" title="处理未保存的环境修改" @close="pendingSection=''"><p>当前分区有未保存的修改。</p><template #footer><Button @click="pendingSection=''">取消切换</Button><Button @click="confirmSection(false)">放弃修改并切换</Button><Button variant="primary" @click="confirmSection(true)">保存后切换</Button></template></Modal>

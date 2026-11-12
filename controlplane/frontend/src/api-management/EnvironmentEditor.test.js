@@ -200,3 +200,60 @@ it('keeps an unsaved selection through a late refresh and controlled echo while 
     expect(wrapper.get('[aria-label="当前环境"]').element.value).toBe('测试'); expect(wrapper.vm.hasUnsavedChanges).toBe(false);
   } finally { wrapper.unmount(); }
 });
+
+
+it('groups fixed Socket addresses with the server while preserving metadata and variable row identity', async () => {
+  const source = environments();
+  source.开发.variables.push(
+    { name: 'ws_url', value: { default: 'wss://dev.example/socket/{socket_id}', description: '连接地址' }, enabled: true },
+    { name: 'socketio_handshake_url', value: 'https://dev.example/socket.io/1/' },
+  );
+  const wrapper = mount(EnvironmentEditor, { props: { environments: source, activeEnvironment: '开发', connectionAddresses: true } });
+  try {
+    expect(wrapper.get('[aria-label="Socket 地址变量名"]').element.value).toBe('ws_url');
+    expect(wrapper.get('[aria-label="Socket 地址变量名"]').element.readOnly).toBe(true);
+    expect(wrapper.get('[aria-label="Socket.IO 握手地址变量名"]').element.value).toBe('socketio_handshake_url');
+    expect(wrapper.get('[aria-label="Socket.IO 握手地址变量名"]').element.readOnly).toBe(true);
+    expect(wrapper.get('[aria-label="Socket 地址"]').element.value).toBe('wss://dev.example/socket/{socket_id}');
+    expect(wrapper.get('[aria-label="Socket.IO 握手地址"]').element.value).toBe('https://dev.example/socket.io/1/');
+    expect(wrapper.get('[aria-label="变量名 1"]').element.value).toBe('token');
+    expect(wrapper.findAll('[aria-label^="变量名 "]')).toHaveLength(1);
+    expect(wrapper.text()).toContain('{{ws_url}}');
+    await wrapper.get('[aria-label="Socket 地址"]').setValue('wss://staging.example/socket/{socket_id}');
+    await wrapper.setProps(wrapper.emitted().update.at(-1)[0]);
+    expect(wrapper.vm.validate().environments.开发.variables).toContainEqual({ name: 'ws_url', value: { default: 'wss://staging.example/socket/{socket_id}', description: '连接地址' }, enabled: true });
+    await wrapper.get('[data-action="add-variable"]').trigger('click');
+    const name = wrapper.get('[aria-label="变量名 2"]');
+    await name.setValue('ws_url');
+    expect(wrapper.get('[aria-label="变量名 2"]').element).toBe(name.element);
+    await expect(wrapper.vm.saveChanges()).rejects.toThrow(/固定|重复/);
+    expect(source.开发.variables[2].value.default).toBe('wss://dev.example/socket/{socket_id}');
+  } finally { wrapper.unmount(); }
+});
+
+it('keeps absent Socket addresses optional and isolates new address drafts by environment', async () => {
+  const source = { 开发: { variables: [{ name: 'base_host', value: 'https://dev.example' }] }, 正式: { variables: [{ name: 'base_host', value: 'https://prod.example' }] } };
+  const wrapper = mount(EnvironmentEditor, { props: { environments: source, activeEnvironment: '开发', connectionAddresses: true } });
+  try {
+    expect(wrapper.vm.hasUnsavedChanges).toBe(false);
+    expect(wrapper.vm.validate().environments).toEqual(source);
+    const input = wrapper.get('[aria-label="Socket 地址"]').element;
+    await wrapper.get('[aria-label="Socket 地址"]').setValue('wss://dev.example/socket');
+    await wrapper.setProps(wrapper.emitted().update.at(-1)[0]);
+    expect(wrapper.get('[aria-label="Socket 地址"]').element).toBe(input);
+    expect(wrapper.findAll('[aria-label^="变量名 "]')).toHaveLength(0);
+    await wrapper.get('[aria-label="当前环境"]').setValue('正式');
+    expect(wrapper.get('[aria-label="Socket 地址"]').element.value).toBe('');
+    await wrapper.get('[aria-label="Socket.IO 握手地址"]').setValue('https://prod.example/handshake');
+    await wrapper.get('[aria-label="当前环境"]').setValue('开发');
+    expect(wrapper.get('[aria-label="Socket 地址"]').element.value).toBe('wss://dev.example/socket');
+    await wrapper.vm.saveChanges();
+    expect(wrapper.vm.hasUnsavedChanges).toBe(false);
+    expect(wrapper.vm.validate().environments.正式.variables).toContainEqual({ name: 'socketio_handshake_url', value: 'https://prod.example/handshake' });
+    await wrapper.get('[aria-label="Socket 地址"]').setValue('');
+    expect(wrapper.vm.validate().environments.开发.variables).toContainEqual({ name: 'ws_url', value: '' });
+    await wrapper.get('[data-action="add-variable"]').trigger('click');
+    await wrapper.get('[aria-label="变量名 1"]').setValue('socketio_handshake_url');
+    await expect(wrapper.vm.saveChanges()).rejects.toThrow(/固定/);
+  } finally { wrapper.unmount(); }
+});

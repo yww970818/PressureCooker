@@ -121,3 +121,44 @@ it('preserves ordinary variable drafts independently across environment selectio
   await waitFor(()=>expect(wrapper.find('[aria-label="当前环境"]').exists()).toBe(true));await wrapper.get('[aria-label="当前环境"]').setValue('测试');await wrapper.get('[aria-label="变量值 1"]').setValue('modified-test');await wrapper.get('[aria-label="当前环境"]').setValue('正式');expect(wrapper.get('[aria-label="变量值 1"]').element.value).toBe('prod-only');await wrapper.get('[aria-label="当前环境"]').setValue('测试');expect(wrapper.get('[aria-label="变量值 1"]').element.value).toBe('modified-test');expect(wrapper.vm.hasUnsavedChanges()).toBe(true);
  }finally{wrapper.unmount();}
 });
+
+
+it('saves both fixed Socket addresses through the existing environment variables contract', async () => {
+  setProjectId('env-fixed-socket-addresses'); const writes = [];
+  const item = { id: 'e', name: '测试', base_host: 'https://api.example.test', revision: 3, variables: [{ name: 'ws_url', value: 'wss://messages.example.test/{socket_id}' }, { name: 'socketio_handshake_url', value: 'https://messages.example.test/handshake' }, { name: 'region', value: 'cn' }] };
+  vi.stubGlobal('fetch', async (_url, init = {}) => {
+    if (init.method === 'PUT') { const body = JSON.parse(init.body); writes.push(body); return response({ ...item, ...body, revision: 4 }); }
+    return response({ items: [item] });
+  });
+  render(ProjectEnvironments);
+  await screen.findByLabelText('当前环境'); await fireEvent.update(screen.getByLabelText('当前环境'), '测试');
+  expect(screen.getByLabelText('Socket 地址').value).toBe('wss://messages.example.test/{socket_id}');
+  expect(screen.getByLabelText('Socket.IO 握手地址').value).toBe('https://messages.example.test/handshake');
+  expect(screen.getByLabelText('变量名 1').value).toBe('region');
+  await fireEvent.update(screen.getByLabelText('Socket 地址'), 'wss://updated.example.test/{socket_id}');
+  await fireEvent.update(screen.getByLabelText('Socket.IO 握手地址'), 'https://updated.example.test/handshake');
+  await fireEvent.click(screen.getByRole('button', { name: '保存环境' }));
+  await waitFor(() => expect(writes).toEqual([{ name: '测试', base_host: item.base_host, revision: 3, variables: [{ name: 'ws_url', value: 'wss://updated.example.test/{socket_id}' }, { name: 'socketio_handshake_url', value: 'https://updated.example.test/handshake' }, { name: 'region', value: 'cn' }] }]));
+  expect(screen.getByLabelText('Socket 地址变量名').readOnly).toBe(true);
+  expect(screen.getByLabelText('Socket.IO 握手地址变量名').readOnly).toBe(true);
+});
+
+
+it('authors optional fixed Socket addresses while creating a project environment', async () => {
+  setProjectId('env-create-socket-addresses'); const writes = [];
+  vi.stubGlobal('fetch', async (_url, init = {}) => {
+    if (init.method === 'POST') { const body = JSON.parse(init.body); writes.push(body); return response({ ...body, id: 'e', revision: 1 }); }
+    return response({ items: [] });
+  });
+  render(ProjectEnvironments); await screen.findByRole('button', { name: '新建环境' });
+  await fireEvent.click(screen.getByRole('button', { name: '新建环境' }));
+  await fireEvent.update(screen.getByLabelText('新环境名称'), '连接测试');
+  await fireEvent.update(screen.getByLabelText('新环境服务器地址'), 'https://api.example.test');
+  await fireEvent.update(screen.getByLabelText('新环境Socket 地址'), 'wss://messages.example.test/{socket_id}');
+  await fireEvent.update(screen.getByLabelText('新环境Socket.IO 握手地址'), 'https://messages.example.test/handshake');
+  await fireEvent.click(screen.getByRole('button', { name: '创建环境' }));
+  expect(screen.getByLabelText('Socket 地址').value).toBe('wss://messages.example.test/{socket_id}');
+  expect(screen.queryByLabelText('变量名 1')).toBeNull();
+  await fireEvent.click(screen.getByRole('button', { name: '保存环境' }));
+  await waitFor(() => expect(writes).toEqual([{ name: '连接测试', base_host: 'https://api.example.test', variables: [{ name: 'ws_url', value: 'wss://messages.example.test/{socket_id}' }, { name: 'socketio_handshake_url', value: 'https://messages.example.test/handshake' }] }]));
+});

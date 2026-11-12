@@ -1,5 +1,10 @@
 import { validateVariableDeclaration } from './variable-rules.js';
 
+export const PROJECT_CONNECTION_ADDRESSES = Object.freeze([
+  { name: 'ws_url', label: 'Socket 地址', placeholder: 'wss://example.com/socket' },
+  { name: 'socketio_handshake_url', label: 'Socket.IO 握手地址', placeholder: 'https://example.com/socket.io/1/' },
+]);
+
 const clone = value => JSON.parse(JSON.stringify(value));
 const record = value => value && typeof value === 'object' && !Array.isArray(value);
 const textValue = value => typeof value === 'string' ? value : record(value) && typeof value.default === 'string' ? value.default : undefined;

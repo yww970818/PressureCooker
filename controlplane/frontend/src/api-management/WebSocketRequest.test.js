@@ -176,3 +176,22 @@ it.each([
  expect(wrapper.emitted('change')).toHaveLength(1);
  wrapper.unmount();
 });
+
+
+it('resolves the fixed project address variables for a Socket.IO handshake without saving literal targets', async () => {
+ vi.stubGlobal('WebSocket',FakeSocket); const handshakes=[];
+ vi.stubGlobal('fetch',async url=>{handshakes.push(url);return new Response('fixed-id:30:60:websocket');});
+ const wsDocument=JSON.parse(JSON.stringify(document));const config=wsDocument.paths['/ws'].get['x-pressure-ws'];
+ Object.assign(config,{url:'{{ws_url}}',socketio:true,handshake_url:'{{socketio_handshake_url}}'});
+ const wrapper=mount(WebSocketRequest,{props:{document:wsDocument,request:{path:'/ws',method:'get'},mode:'direct',projectEnvironment:{id:'qa',base_host:'https://api.test',variables:[{name:'ws_url',value:'wss://socket.test/socket.io/1/websocket/{socket_id}'},{name:'socketio_handshake_url',value:'https://socket.test/socket.io/1/'}]}}});
+ try {
+  await flushPromises();
+  expect(variableInputValue(wrapper.get('[aria-label="WS 地址"]').element)).toBe('wss://socket.test/socket.io/1/websocket/{socket_id}');
+  expect(variableInputValue(wrapper.get('[aria-label="Socket.IO 握手地址"]').element)).toBe('https://socket.test/socket.io/1/');
+  await wrapper.findAll('button').find(button=>button.text()==='连接').trigger('click');
+  await waitFor(()=>expect(FakeSocket.items).toHaveLength(1));
+  expect(handshakes).toEqual(['https://socket.test/socket.io/1/']);
+  expect(FakeSocket.items[0].url).toBe('wss://socket.test/socket.io/1/websocket/fixed-id');
+  expect(wrapper.vm.snapshot().document.paths['/ws'].get['x-pressure-ws']).toMatchObject({url:'{{ws_url}}',handshake_url:'{{socketio_handshake_url}}'});
+ } finally {wrapper.unmount();}
+});
